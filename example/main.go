@@ -13,7 +13,6 @@ import (
 
 func main()  {
 	var reg = em.Register{
-		Config:          em_library.Config,
 		GrpcServiceFunc: RegisterRpcService,
 		GrpcMiddleware:  RegisterGrpcMiddleware,
 		HttpServiceFunc: RegisterHttpService,
