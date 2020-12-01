@@ -4,11 +4,19 @@
 
 ## 前提条件
 使用前，请确保你是否符合框架所需技能要求
+
 1.具有Protobuf的基础
+
 2.具有Go的基础
 
 ## 介绍
 Etpmls-Micro（简称EM）是一个微服务框架，使用本框架可以在短时间内快速开发出你的微服务应用。本项目基于Grpc+Grpc Gateway开发。
+
+>我们推荐您搭配以下项目同时使用，便于快速开发您的应用。
+>
+>[EM-Auth](https://github.com/Etpmls/EM-Auth)：总控制中心，集成用户、角色、权限的RBAC0的鉴权、自定义菜单、清除缓存、磁盘清理等功能
+>
+>[EM-Attachment](https://github.com/Etpmls/EM-Attachment)： 附件中心，用于处理各个微服务的附件。
 
 ## 安装
 使用go mod安装
@@ -19,6 +27,8 @@ import "github.com/Etpmls/Etpmls-Micro"
 ## 快速入门
 ```go
 package main
+
+import "github.com/Etpmls/Etpmls-Micro"
 
 func main() {
 	var reg = em.Register{
