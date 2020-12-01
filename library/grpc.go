@@ -54,7 +54,7 @@ func (this *grpc) GetValueFromMetadata(ctx context.Context, key string) ([]strin
 	if !ok {
 		return nil, errors.New("Get metadata failed!")
 	}
-	if md.Len() == 0 {
+	if len(md.Get(key)) == 0 {
 		return nil, errors.New("metadata no record")
 	}
 	return md.Get(key), nil
