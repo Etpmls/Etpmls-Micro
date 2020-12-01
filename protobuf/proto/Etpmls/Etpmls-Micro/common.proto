@@ -1,0 +1,22 @@
+syntax = "proto3";
+package em_protobuf;
+option go_package = "github.com/Etpmls/Etpmls-Micro/protobuf;em_protobuf";
+
+message Empty {}
+
+message Response {
+    string code=1;
+    string status=2;
+    string message=3;
+    string data=4;
+}
+
+message Pagination {
+    uint32 number=1;
+    uint32 size=2;
+    string search=3;
+}
+
+message Id {
+    uint32 id=1;
+}

@@ -1,0 +1,16 @@
+syntax = "proto3";
+package em_protobuf;
+option go_package = ".;em_protobuf";
+
+message AuthCheck {
+    string service=1;
+    uint32 user_id=2;
+}
+
+message AuthCheckResponse {
+    bool success=1;
+}
+
+service Auth {
+    rpc Check (AuthCheck) returns (AuthCheckResponse) ;
+}
