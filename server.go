@@ -3,6 +3,7 @@ package em
 import (
 	"context"
 	"flag"
+	em_library "github.com/Etpmls/Etpmls-Micro/library"
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 	"net"
@@ -17,7 +18,7 @@ import (
 */
 // https://github.com/grpc/grpc-go/blob/15a78f19307d5faf10cfdd9d4e664c65a387cbd1/examples/helloworld/greeter_server/main.go#L46
 func (this *Register) runGrpcServer()  {
-	lis, err := net.Listen("tcp", ":" + this.Config.App.RpcPort)
+	lis, err := net.Listen("tcp", ":" + em_library.Config.App.RpcPort)
 	if err != nil {
 		LogFatal.Output("failed to listen: " + err.Error())
 	}
@@ -41,7 +42,7 @@ func (this *Register) runHttpServer()  {
 	var (
 		// command-line options:
 		// gRPC server endpoint
-		grpcServerEndpoint = flag.String("grpc-server-endpoint",  "localhost:" + this.Config.App.RpcPort, "gRPC server endpoint")
+		grpcServerEndpoint = flag.String("grpc-server-endpoint",  "localhost:" + em_library.Config.App.RpcPort, "gRPC server endpoint")
 	)
 
 	flag.Parse()
@@ -70,7 +71,7 @@ func (this *Register) runHttpServer()  {
 	handler := NewMiddleware().SetCors(mux, options)
 
 	// Start HTTP server (and proxy calls to gRPC server endpoint)
-	err = http.ListenAndServe(":" + this.Config.App.HttpPort, handler)
+	err = http.ListenAndServe(":" + em_library.Config.App.HttpPort, handler)
 	if err != nil {
 		glog.Fatal(err)
 	}

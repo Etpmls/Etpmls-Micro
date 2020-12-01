@@ -16,7 +16,6 @@ import (
 var EA *Register
 
 type Register struct {
-	Config                    library.Configuration
 	CustomConfiguration       struct{
 		Path string
 		DebugPath string
