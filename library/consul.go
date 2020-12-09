@@ -49,29 +49,50 @@ func NewConsul() *consul {
 // 注册服务
 func (this *consul) RegistrationService() error {
 	// string -> int
-	port, err := strconv.Atoi(Config.App.RpcPort)
+	rpcPort, err := strconv.Atoi(Config.App.RpcPort)
 	if err != nil {
-		Instance_Logrus.Error("port is not a int type! Error:", err.Error())
+		Instance_Logrus.Error("rpcPort is not a int type! Error:", err.Error())
+		return err
+	}
+	httpPort, err := strconv.Atoi(Config.App.HttpPort)
+	if err != nil {
+		Instance_Logrus.Error("httpPort is not a int type! Error:", err.Error())
 		return err
 	}
 
-	r := Package_Consul.AgentServiceRegistration{
-		ID:      Config.ServiceDiscovery.Service.Id,
-		Name:    Config.ServiceDiscovery.Service.Name,
-		Tags:    Config.ServiceDiscovery.Service.Tag,
-		Port:    port,
-		Address: Config.ServiceDiscovery.Service.Address,
-	}
-
-	c := Package_Consul.AgentServiceCheck{
+	// Service Check
+	Check := Package_Consul.AgentServiceCheck{
 		Interval: Config.ServiceDiscovery.Service.CheckInterval,
 		HTTP:     "http://" + Config.ServiceDiscovery.Service.Address + ":" + Config.App.HttpPort + Config.ServiceDiscovery.Service.CheckUrl,
 	}
 
-	r.Check = &c
-	err = Instance_Consul.Agent().ServiceRegister(&r)
+	// Configuration service
+	conf := Package_Consul.AgentServiceRegistration{
+		Address:   Config.ServiceDiscovery.Service.Address,
+		Check: &Check,
+	}
+
+	rpcConf := conf
+	rpcConf.ID = Config.ServiceDiscovery.Service.Rpc.Id
+	rpcConf.Name = Config.ServiceDiscovery.Service.Prefix + "_" + Config.ServiceDiscovery.Service.Rpc.Name
+	rpcConf.Tags = Config.ServiceDiscovery.Service.Rpc.Tag
+	rpcConf.Port = rpcPort
+
+	httpConf := conf
+	httpConf.ID = Config.ServiceDiscovery.Service.Http.Id
+	httpConf.Name = Config.ServiceDiscovery.Service.Prefix + "_" + Config.ServiceDiscovery.Service.Http.Name
+	httpConf.Tags = Config.ServiceDiscovery.Service.Http.Tag
+	httpConf.Port = httpPort
+
+	err = Instance_Consul.Agent().ServiceRegister(&rpcConf)
 	if err != nil {
-		Instance_Logrus.Error("Consul Service registration failed! Error:", err.Error())
+		Instance_Logrus.Error("Consul RPC Service registration failed! Error:", err.Error())
+		return err
+	}
+
+	err = Instance_Consul.Agent().ServiceRegister(&httpConf)
+	if err != nil {
+		Instance_Logrus.Error("Consul HTTP Service registration failed! Error:", err.Error())
 		return err
 	}
 
@@ -81,9 +102,14 @@ func (this *consul) RegistrationService() error {
 // Cancel Service
 // 取消服务
 func (this *consul) CancelService() error {
-	err := Instance_Consul.Agent().ServiceDeregister(Config.ServiceDiscovery.Service.Id)
+	err := Instance_Consul.Agent().ServiceDeregister(Config.ServiceDiscovery.Service.Rpc.Id)
 	if err != nil {
-		Instance_Logrus.Error("Cancel Consul service failed! Error:", err.Error())
+		Instance_Logrus.Error("Cancel Consul RPC service failed! Error:", err.Error())
+		return err
+	}
+	err = Instance_Consul.Agent().ServiceDeregister(Config.ServiceDiscovery.Service.Http.Id)
+	if err != nil {
+		Instance_Logrus.Error("Cancel Consul HTTP service failed! Error:", err.Error())
 		return err
 	}
 	return nil

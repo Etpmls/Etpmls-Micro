@@ -36,12 +36,20 @@ type Configuration struct {
 	ServiceDiscovery struct{
 		Address string
 		Service struct{
-			Id string
-			Name string
-			Address string
-			Tag []string
+			Rpc struct{
+				Id string
+				Name string
+				Tag []string
+			}
+			Http struct{
+				Id string
+				Name string
+				Tag []string
+			}
+			Prefix        string
+			Address       string
 			CheckInterval string	`yaml:"check-interval"`
-			CheckUrl string	`yaml:"check-url"`
+			CheckUrl      string	`yaml:"check-url"`
 		}
 	}	`yaml:"service-discovery"`
 	Cache struct{

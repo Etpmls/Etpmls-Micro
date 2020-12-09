@@ -21,13 +21,20 @@ database:
 service-discovery:
   address: localhost:8500
   service:
-    id: ExampleService-1
-    name: ExampleService
-    address: 192.168.1.100
+   rpc:
+    id: ExampleRpcService-1
+    name: ExampleRpcService
     tag:
     - primary
-    check-interval: 60s
-    check-url: /health
+   http:
+     id: ExampleHttpService-1
+     name: ExampleHttpService
+     tag:
+       - primary
+   prefix: ExampleNamespace
+   address: 192.168.1.100
+   check-interval: 60s
+   check-url: /health
 cache:
   address: localhost:6379
   password: "123456"
