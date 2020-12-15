@@ -17,6 +17,7 @@ import (
 var EA *Register
 
 type Register struct {
+	Version_Service map[string]string
 	CustomConfiguration       struct{
 		Path string
 		DebugPath string
@@ -36,9 +37,20 @@ type Register struct {
 	ReturnRpcErrorFunc    func(rcpStatusCode codes.Code, code string, message string, data interface{}, err error) (*em_protobuf.Response, error)
 	ReturnHttpSuccessFunc func(code string, message string, data interface{}) ([]byte, error)
 	ReturnHttpErrorFunc   func(code string, message string, data interface{}, err error) ([]byte, error)
+	stoprun				  bool
 }
 
-func init()  {
+
+func (this *Register) Init() {
+	switch  {
+	case init_version(this):
+		this.stoprun = true
+		VersionPrint()
+		return
+	default:
+	}
+
+
 	library.Init_Yaml()
 	library.Init_Logrus(library.Config.Log.Level)
 	library.Init_Redis(library.Config.App.Cache, library.Config.Cache.Address, library.Config.Cache.Password, library.Config.Cache.DB)
@@ -72,6 +84,9 @@ func init()  {
 }
 
 func (this *Register) Run()  {
+	if this.stoprun {
+		return
+	}
 	// Set Custom Configuration
 	library.Init_CustomYaml(this.CustomConfiguration.Path, this.CustomConfiguration.DebugPath, this.CustomConfiguration.StructAddr)
 
