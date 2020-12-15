@@ -7,7 +7,7 @@ import (
 
 var Instance_Logrus *Package_Logrus.Logger
 
-func Init_Logrus() {
+func Init_Logrus(logLevel string) {
 	Instance_Logrus = Package_Logrus.New()
 	// Instance_Logrus as JSON instead of the default ASCII formatter.
 	Instance_Logrus.Formatter = new(Package_Logrus.JSONFormatter)
@@ -22,7 +22,7 @@ func Init_Logrus() {
 	}
 
 	// Only log the warning severity or above.
-	level, err := Package_Logrus.ParseLevel(Config.Log.Level)
+	level, err := Package_Logrus.ParseLevel(logLevel)
 	if err != nil {
 		level = Package_Logrus.WarnLevel
 		Instance_Logrus.Warning("Set Instance_Logrus Level Failed!")

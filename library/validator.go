@@ -1,7 +1,7 @@
 package em_library
 
 import (
-	utils "github.com/Etpmls/Etpmls-Micro/utils"
+	"encoding/json"
 	Package_Validator "github.com/go-playground/validator/v10"
 )
 
@@ -30,11 +30,23 @@ func (this *validator) ValidateStruct(s interface{}) error {
 }
 
 func (this *validator) Validate(request interface{}, my_struct interface{}) error {
-	err := utils.ChangeType(request, my_struct)
+	err := this.utils_ChangeType(request, my_struct)
 	if err != nil {
 		return err
 	}
 	err = this.ValidateStruct(my_struct)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (this *validator) utils_ChangeType(in interface{}, out interface{}) (error) {
+	b, err := json.Marshal(in)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(b, &out)
 	if err != nil {
 		return err
 	}

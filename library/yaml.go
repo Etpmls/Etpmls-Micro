@@ -3,9 +3,9 @@
 package em_library
 
 import (
-	utils "github.com/Etpmls/Etpmls-Micro/utils"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"time"
 )
@@ -105,7 +105,8 @@ func Init_Yaml() {
 	}
 
 	if len(Config.App.Key) < 50 {
-		Config.App.Key = utils.GenerateRandomString(50)
+		var y yamlV2
+		Config.App.Key = y.utils_GenerateRandomString(50)
 
 		out, err := yaml.Marshal(Config)
 		if err != nil {
@@ -151,8 +152,24 @@ func Init_CustomYaml(path, debug_path string, structAddr interface{})  {
 	}
 }
 
+type yamlV2 struct {
 
+}
 
+// Generate random strings
+// 生成随机字符串
+func (this *yamlV2) utils_GenerateRandomString(l int) string {
+	var code = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/~!@#$%^&*()_="
+
+	data := make([]byte, l)
+	rand.Seed(time.Now().UnixNano())
+
+	for i := 0; i < l; i++ {
+		idx := rand.Intn(len(code))
+		data[i] = code[idx]
+	}
+	return string(data)
+}
 
 
 

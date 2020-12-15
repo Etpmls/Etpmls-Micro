@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	em_library "github.com/Etpmls/Etpmls-Micro/library"
 	em_protobuf "github.com/Etpmls/Etpmls-Micro/protobuf"
-	em_utils "github.com/Etpmls/Etpmls-Micro/utils"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -18,7 +17,7 @@ import (
 func defaultHandleExit() {
 	err := em_library.ServiceDiscovery.CancelService()
 	if err != nil {
-		LogError.Output(em_utils.MessageWithLineNum(err.Error()))
+		LogError.Output("Cancel service failed! " + MessageWithLineNum(err.Error()))
 	}
 	return
 }
@@ -67,7 +66,7 @@ func defaultHandleHttpSucessFunc(code string, message string, data interface{}) 
 			Code:    code,
 			Status:  "success",
 			Message: message,
-			Data:    em_utils.MustConvertJson(data),
+			Data:    MustConvertJson(data),
 		})
 	return b, err
 }
@@ -123,7 +122,7 @@ func defaultHandleRpcSuccessFunc(code string, message string, data interface{}) 
 		Code:    code,
 		Status:  SUCCESS_Status,
 		Message: message,
-		Data:    em_utils.MustConvertJson(data),
+		Data:    MustConvertJson(data),
 	}, nil
 }
 
@@ -182,9 +181,9 @@ func defaultGrpcMiddlewareFunc() *grpc.Server {
 				// Panic recover
 				grpc_recovery.UnaryServerInterceptor(),
 				// I18n
-				NewMiddleware().I18n(),
+				DefaultMiddleware().I18n(),
 				// token Auth
-				NewMiddleware().Auth(),
+				DefaultMiddleware().Auth(),
 			),
 		),
 	)

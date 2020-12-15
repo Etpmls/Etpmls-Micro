@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	library "github.com/Etpmls/Etpmls-Micro/library"
-	utils "github.com/Etpmls/Etpmls-Micro/utils"
 	"strings"
 )
 
@@ -72,7 +71,7 @@ type OutputLog struct {
 func (o OutputLog) Output (info interface{}) {
 	l, err := ParseLogLevel(library.Config.Log.Level)
 	if err != nil {
-		library.Log.Panic(utils.MessageWithLineNum("Error in the log function!"))
+		library.Log.Panic(MessageWithLineNum("Error in the log function!"))
 		return
 	}
 
@@ -234,7 +233,7 @@ func (this OutputLog) OutputAndReturnError (info interface{}) error {
 func (o OutputLog) OutputDebug (err error, msg interface{}) {
 	l, err := ParseLogLevel(library.Config.Log.Level)
 	if err != nil {
-		library.Log.Panic(utils.MessageWithLineNum("Error in the log function!"))
+		library.Log.Panic(MessageWithLineNum("Error in the log function!"))
 		return
 	}
 
@@ -400,6 +399,6 @@ func (o OutputLog) AutoOutputDebug (msg interface{}, err error) {
 		return
 	}
 
-	o.OutputDebug(utils.GenerateErrorWithMessage(v + "Error: ", err), msg)
+	o.OutputDebug(GenerateErrorWithMessage(v + "Error: ", err), msg)
 	return
 }

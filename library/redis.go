@@ -8,17 +8,17 @@ import (
 
 var Instance_Redis *Package_Redis.Client
 
-func Init_Redis()  {
+func Init_Redis(enableCache bool, address string, password string, db int)  {
 	//	If the cache is not turned on, skip redis initialization
 	//	如果没有开启缓存则跳过redis初始化
-	if !Config.App.Cache {
+	if !enableCache {
 		return
 	}
 
 	Instance_Redis = Package_Redis.NewClient(&Package_Redis.Options{
-		Addr:     Config.Cache.Address,
-		Password: Config.Cache.Password, // no password set
-		DB:       Config.Cache.DB,       // use default DB
+		Addr:     address,
+		Password: password, // no password set
+		DB:       db,       // use default DB
 	})
 
 	_, err := Instance_Redis.Ping(context.TODO()).Result()

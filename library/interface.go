@@ -13,6 +13,7 @@ var (
 	Captcha  = Interface_Captcha(NewRecaptcha())
 	Validator  = Interface_Validator(NewValidator())
 	ServiceDiscovery = Interface_ServiceDiscovery(NewConsul())
+	CircuitBreaker = Interface_CircuitBreaker(NewHystrixGo())
 )
 
 
@@ -73,6 +74,11 @@ type Interface_Validator interface {
 }
 
 type Interface_ServiceDiscovery interface {
-	GetServiceAddress_Random(service_name string, options map[string]interface{}) (string, error)
+	GetServiceAddr(service_name string, options map[string]interface{}) (string, error)
 	CancelService() error
+}
+
+type Interface_CircuitBreaker interface {
+	Sync(name string, run func() error, fallBack func(error) error) error
+	Async(name string, run func() error, fallBack func(error) error) chan error
 }

@@ -68,7 +68,7 @@ func (this *Register) runHttpServer()  {
 	// Set CORS
 	options := this.CorsOptions()
 
-	handler := NewMiddleware().SetCors(mux, options)
+	handler := DefaultMiddleware().SetCors(mux, options)
 
 	// Start HTTP server (and proxy calls to gRPC server endpoint)
 	err = http.ListenAndServe(":" + em_library.Config.App.HttpPort, handler)

@@ -2,46 +2,41 @@ package em
 
 import (
 	"context"
-	"errors"
 	em_library "github.com/Etpmls/Etpmls-Micro/library"
-	em_utils "github.com/Etpmls/Etpmls-Micro/utils"
-	"github.com/dgrijalva/jwt-go"
-	"strconv"
 )
 
 type auth struct {
 
 }
-func NewAuth() *auth {
-	return &auth{}
-}
 
-// Get token from header
-// 从header获取令牌
-func (this *auth) GetTokenFromHeader(ctx context.Context) (string, error) {
-	var request Request
-	return request.GetValueFromHeader(ctx, "token")
+// Verify that the token is valid
+// 验证token是否有效
+func (this *auth)VerifyToken(token string) (bool, error) {
+	// Parse token
+	_, err := em_library.JwtToken.ParseToken(token)
+	if err != nil {
+		LogInfo.Output(MessageWithLineNum(err.Error()))
+		return false, err
+	}
+
+	return true, nil
 }
 
 // Get token from ctx
 // 从ctx获取令牌
 func (this *auth) GetTokenFromCtx(ctx context.Context) (string, error) {
-	var request Request
+	var request request
 	return request.GetValueFromCtx(ctx, "token")
 }
 
-// Verify that the token is valid
-// 验证token是否有效
-func (this *auth)VerifyToken(token string) (error) {
-	// Parse token
-	_, err := em_library.JwtToken.ParseToken(token)
-	if err != nil {
-		LogInfo.Output(em_utils.MessageWithLineNum(err.Error()))
-		return err
-	}
-
-	return nil
+// Get token from header
+// 从header获取令牌
+func (this *auth) Rpc_GetTokenFromHeader(ctx context.Context) (string, error) {
+	var request request
+	return request.Rpc_GetValueFromHeader(ctx, "token")
 }
+
+/*
 
 // Verify that the token has access permissions
 // 验证token是否具有访问权限
@@ -72,4 +67,4 @@ func (this *auth)VerifyPermissions(token string, fullMethodName string) (error) 
 	}
 
 	return errors.New("PermissionDenied")
-}
+}*/

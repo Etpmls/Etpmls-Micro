@@ -2,11 +2,7 @@ package em
 
 import (
 	"context"
-	"errors"
-	library "github.com/Etpmls/Etpmls-Micro/library"
-	em_protobuf "github.com/Etpmls/Etpmls-Micro/protobuf"
-	utils "github.com/Etpmls/Etpmls-Micro/utils"
-	"github.com/afex/hystrix-go/hystrix"
+	em_library "github.com/Etpmls/Etpmls-Micro/library"
 	"google.golang.org/grpc"
 	"time"
 )
@@ -14,38 +10,64 @@ import (
 type client struct {
 }
 
-func NewClient() *client {
-	return &client{}
+func (this *client) NewClient() *cli {
+	return &cli{}
 }
 
-func (this *client) ConnectService(service_name string) (*grpc.ClientConn, error) {
-	// Get service address
-	// 获取服务地址
-	host, err := library.ServiceDiscovery.GetServiceAddress_Random(service_name, nil)
+type cli struct {
+	Conn *grpc.ClientConn
+	Context *context.Context
+	Header map[string]string
+}
+
+func (this *cli) ConnectService(service_name string) (error) {
+	addr, err := em_library.ServiceDiscovery.GetServiceAddr(service_name, nil)
 	if err != nil {
-		LogError.Output(utils.MessageWithLineNum(err.Error()))
-		return nil, err
+		LogError.Output(MessageWithLineNum(err.Error()))
+		return err
 	}
 
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(host, grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 	if err != nil {
-		LogError.Output(utils.MessageWithLineNum(err.Error()))
-		return nil, err
+		LogError.Output(MessageWithLineNum(err.Error()))
+		return err
+	}
+	this.Conn = conn
+	return nil
+}
+
+func (this *cli) Sync(run func() error, callback func(error) error) error {
+	if this.Context == nil {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		this.Context = &ctx
 	}
 
-	return conn, nil
+	Micro.Request.Rpc_SetValueToHeader(this.Context, this.Header)
+
+	defer this.Conn.Close()
+	return em_library.CircuitBreaker.Sync("default", run, callback)
 }
 
-func (this *client) Go(name string, run func() error, fallBack func(error) error) chan error {
-	return hystrix.Go(name, run, fallBack)
+func (this *cli) Async(run func() error, callback func(error) error) chan error {
+	if this.Context == nil {
+		var cancel context.CancelFunc
+		*this.Context, cancel = context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+	}
+
+	Micro.Request.Rpc_SetValueToHeader(this.Context, this.Header)
+
+	defer this.Conn.Close()
+	return em_library.CircuitBreaker.Async("default", run, callback)
 }
 
-func (this *client) Do(name string, run func() error, fallBack func(error) error) error {
-	return hystrix.Do(name, run, fallBack)
-}
 
-func (this *client) AuthCheck(authServiceName string, currentServiceName string, userId uint) (bool) {
+
+
+/*
+func (this *cli) AuthCheck(authServiceName string, currentServiceName string, userId uint) (bool) {
 	cl := NewClient()
 	err := cl.Do("common", func() error {
 
@@ -84,9 +106,4 @@ func (this *client) AuthCheck(authServiceName string, currentServiceName string,
 
 	return true
 }
-
-func (this *client) SetValueToClientHeader(ctx *context.Context, m map[string]string) {
-	g := library.NewGrpc()
-	g.SetValueToMetadata(ctx, m)
-	return
-}
+*/

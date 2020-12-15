@@ -2,7 +2,6 @@ package em_library
 
 import (
 	"encoding/json"
-	utils "github.com/Etpmls/Etpmls-Micro/utils"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -26,7 +25,7 @@ func (this *recaptcha) Verify(secret string, response string) bool {
 
 	resp, err := c.PostForm("https://" + Config.Captcha.Host + "/recaptcha/api/siteverify", url.Values{"secret": []string{secret}, "response": []string{response}})
 	if err != nil {
-		Log.Error(utils.MessageWithLineNum(err.Error()))
+		Log.Error(err.Error())
 		return false
 	}
 	defer resp.Body.Close()
@@ -35,7 +34,7 @@ func (this *recaptcha) Verify(secret string, response string) bool {
 	var m = make(map[string]interface{})
 	err = json.Unmarshal(body, &m)
 	if err != nil {
-		Log.Error(utils.MessageWithLineNum(err.Error()))
+		Log.Error(err.Error())
 		return false
 	}
 	v, ok := m["success"]

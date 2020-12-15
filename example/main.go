@@ -55,11 +55,11 @@ func RegisterGrpcMiddleware() *grpc.Server {
 				grpc_recovery.UnaryServerInterceptor(),
 				// token auth
 				// grpc_auth.UnaryServerInterceptor(middleware.NewAuth().BasicVerify),
-				// middleware.NewMiddleware().Auth(),
+				// middleware.DefaultMiddleware().Auth(),
 				// Captcha auth
-				// middleware.NewMiddleware().Captcha(),
+				// middleware.DefaultMiddleware().Captcha(),
 				// I18n
-				em.NewMiddleware().I18n(),
+				em.DefaultMiddleware().I18n(),
 			),
 		),
 	)

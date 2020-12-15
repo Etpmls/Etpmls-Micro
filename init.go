@@ -2,7 +2,6 @@ package em
 
 import (
 	"context"
-	"github.com/Etpmls/Etpmls-Micro/language"
 	library "github.com/Etpmls/Etpmls-Micro/library"
 	em_protobuf "github.com/Etpmls/Etpmls-Micro/protobuf"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -11,6 +10,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"strings"
+	_ "github.com/Etpmls/Etpmls-Micro/file"
+	consul "github.com/hashicorp/consul/api"
 )
 
 var EA *Register
@@ -39,13 +40,35 @@ type Register struct {
 
 func init()  {
 	library.Init_Yaml()
-	library.Init_Logrus()
-	library.Init_Redis()
-	library.Init_Consul()
+	library.Init_Logrus(library.Config.Log.Level)
+	library.Init_Redis(library.Config.App.Cache, library.Config.Cache.Address, library.Config.Cache.Password, library.Config.Cache.DB)
+
+	// Consul Config
+	pkgConfig := consul.DefaultConfig()
+	pkgConfig.Address = library.Config.ServiceDiscovery.Address
+	pkgConfig.WaitTime = library.Config.App.CommunicationTimeout
+	var config = library.ConsulConfig{
+		Config: pkgConfig,
+		Enable: library.Config.App.ServiceDiscovery,
+		ConsulAddress:  library.Config.ServiceDiscovery.Address,
+		RpcId:          library.Config.ServiceDiscovery.Service.Rpc.Id,
+		RpcName:        library.Config.ServiceDiscovery.Service.Rpc.Name,
+		RpcPort:        library.Config.App.RpcPort,
+		RpcTag:         library.Config.ServiceDiscovery.Service.Rpc.Tag,
+		HttpId:         library.Config.ServiceDiscovery.Service.Http.Id,
+		HttpName:       library.Config.ServiceDiscovery.Service.Http.Name,
+		HttpPort:       library.Config.App.HttpPort,
+		HttpTag:        library.Config.ServiceDiscovery.Service.Http.Tag,
+		Prefix:         library.Config.ServiceDiscovery.Service.Prefix,
+		ServiceAddress: library.Config.ServiceDiscovery.Service.Address,
+		CheckInterval:  library.Config.ServiceDiscovery.Service.CheckInterval,
+		CheckUrl:       library.Config.ServiceDiscovery.Service.CheckUrl,
+	}
+	library.Init_Consul(&config)
+
 	library.Init_Validator()
 	library.Init_GoI18n()
-	library.Init_HystrixGo()
-	language.LoadLanguage()
+	library.Init_HystrixGo(library.Config.App.CommunicationTimeout)
 }
 
 func (this *Register) Run()  {
