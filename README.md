@@ -30,6 +30,18 @@ Etpmls-Micro (EM for short) is a micro-service framework, using this framework c
 >
 >[EM-Attachment](https://github.com/Etpmls/EM-Attachment): Attachment center, used to process attachments of various microservices.
 
+## Version Description
+
+Our version format is: vA.B.C,
+
+If your EM version is different from the latest version only `C`, then you can upgrade directly without hesitation.
+
+If your EM version is only `B` different from the latest version, then you may need to pay attention to the upgrade manual, because we may have some changes, and of course we will try to control the compatibility of the higher version.
+
+If your EM version differs from the latest version only by `A`, it means that the version has been updated or refactored. You should consider whether to upgrade to the latest version.
+
+> We try our best to focus on high compatibility and small changes to reduce the learning cost of users
+
 ## Installation
 Install with go mod
 ```go
@@ -115,4 +127,4 @@ You need to create two files **app.yaml** (production environment configuration)
 
 You can refer to the app.yaml.example file to configure.
 
-> The configuration example of Etpmls-Micro/file/app.yaml.example in the EM framework source code is always the latest. If your application configuration file is old, please copy the configuration file example from EM to your project.
+> The configuration example of Etpmls-Micro/file/app.yaml.example in the EM framework source code is always the latest. If you plan to upgrade from a lower version to a higher version of the EM framework, please copy the latest configuration file example from EM to your project.
