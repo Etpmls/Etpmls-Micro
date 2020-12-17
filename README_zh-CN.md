@@ -120,15 +120,15 @@ go run main.go
 |______/register
 ```
 
-`/storage` : **[名称不可修改]**存放无需编译的文件的目录
+`/storage` : **[名称不可修改]** 存放无需编译的文件的目录
 
-`/storage/config` : **[名称不可修改]**存放应用配置文件
+`/storage/config` : **[名称不可修改]** 存放应用配置文件
 
-`/storage/language` : **[名称不可修改]**存放多语言文件
+`/storage/language` : **[名称不可修改] **存放多语言文件
 
-`/storage/log` : **[名称不可修改]**存放日志文件
+`/storage/log` : **[名称不可修改]** 存放日志文件
 
-`/storage/menu` : **[名称不可修改]**存放前端自定义菜单的json文件
+`/storage/menu` : **[名称不可修改]** 存放前端自定义菜单的json文件
 
 `/storage/upload` : 存放上传附件的目录，通常EM-Attachment需要此目录，其他微服务应用可不创建此目录
 
