@@ -36,6 +36,7 @@ import "github.com/Etpmls/Etpmls-Micro"
 ```
 
 ## 快速入门
+
 ```go
 package main
 
@@ -59,3 +60,39 @@ func main() {
 
 `RegisterRoute` : 实现路由
 
+## 配置
+
+EM需要配置两个文件，一个是环境变量配置，另一个是应用配置
+
+### 环境变量配置
+
+> .env
+
+```
+DEBUG="FALSE"
+INIT_DATABASE="FALSE"
+```
+
+`DEBUG:`
+
+是否开启调试模式。(TRUE/FALSE)，
+
+若填写TRUE，则默认读取配置文件**storage/config/app.yaml**， 若填写FALSE，则默认读取配置文件**storage/config/app_debug.yaml**
+
+`INIT_DATABASE:`
+
+是否初始化数据库(TRUE/FALSE)，
+
+建议第一次部署EA时使用。
+
+如开启此模式，将自动向数据库中插入初始化数据。
+
+请勿在已存在数据的情况下开启此模式！
+
+### 应用配置
+
+你需要在storage/config文件夹下方建立两个文件**app.yaml**（生产环境配置）和**app_debug.yaml**（debug环境配置），应用是否使用哪个文件取决于你的环境变量`DEBUG`的值。
+
+你可以参考app.yaml.example文件来配置。
+
+> EM框架源码中的Etpmls-Micro/file/app.yaml.example配置示例永远是最新的。如果你的应用配置文件是旧的，请从EM中复制配置文件示例到你的项目下。

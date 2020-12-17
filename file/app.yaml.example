@@ -5,15 +5,15 @@ app:
   # [Required] Application HTTP service port number (eg: "8081")
   # [必填] 应用HTTP服务端口号(如："8081")
   http-port: "8081"
+  # [Optional] Encrypted salt, leave it blank to generate automatically
+  # [可选]加密盐，留空则自动生成
+  key:
   # [Required] Whether to enable the verification code function(true/false), The default is true
   # [必填] 是否开启验证码功能(true/false)，默认为true
   captcha: false
   # [Required] Whether to enable the registration function (true/false), The default is false
   # [必填] 是否开启注册功能(true/false)，默认为false
   register: false
-  # [Optional] Encrypted salt, leave it blank to generate automatically
-  # [可选]加密盐，留空则自动生成
-  key:
   # [Required] Whether to enable the database function, if you have installed postgresql, please fill in true, otherwise fill in false, the default is false
   # [必填] 是否开启数据库功能，如果您安装了postgresql等，请填写true，否则填写false，默认为false
   database: false
@@ -35,6 +35,8 @@ app:
   # [Required] The timeout period for communicating with other microservices, in milliseconds, the default is 1000
   # [必填] 与其他微服务通讯的超时时间，单位毫秒，默认为1000
   communication-timeout: 1000
+# [If app.database is enabled, this field is required]
+# [若启用app.database，则该字段必填]
 database:
   # [Required] Database address (eg: "localhost")
   # [必填] 数据库地址(如：localhost)
@@ -54,29 +56,47 @@ database:
   # [Required] Database table prefix (eg: prefix_)
   # [必填] 数据库表前缀(如：prefix_)
   prefix: prefix_
+# [If app.service-discovery is enabled, this field is required]
+# [若启用app.service-discovery，则该字段必填]
 service-discovery:
   # [Required] Service discovery server address (eg: localhost:8500)
   # [必填] 服务发现服务器地址(如：localhost:8500)
   address: localhost:8500
   service:
-    # [Required] Service id (eg: UserService-1)
-    # [必填] 服务id(如：UserService-1)
-    id: ExampleService-1
-    # [Required] Service name (eg: UserService)
-    # [必填] 服务名称(如：UserService)
-    name: ExampleService
-    # [Required] Local address (eg: 192.168.1.100)
-    # [必填] 本机地址(如：192.168.1.100)
+    rpc:
+      # [Required] RPC Service id (eg: AuthRpcService-1)
+      # [必填] RPC服务id(如：AuthRpcService-1)
+      id: ExampleRpcService-1
+      # [Required] RPC Service name (eg: AuthRpcService)
+      # [必填] RPC服务名称(如：AuthRpcService)
+      name: ExampleRpcService
+      # [Required] RPC Service tag (eg: ["primary"]
+      # [必填] RPC服务标签(如：["primary"])
+      tag: []
+    http:
+      # [Required] HTTP Service id (eg: AuthHTTPService-1)
+      # [必填] HTTP服务id(如：AuthHTTPService-1)
+      id: ExampleHTTPService-1
+      # [Required] HTTP Service name (eg: AuthHttpService)
+      # [必填] HTTP服务名称(如：AuthHttpService)
+      name: ExampleHttpService
+      # [Required] HTTP Service tag (eg: ["primary"]
+      # [必填] HTTP服务标签(如：["primary"])
+      tag: []
+    # [Required] Service name prefix, used to distinguish different items (eg: "em/")
+    # [必填] 服务名称前缀，用于区分不同项目(如："em/")
+    prefix: "em/"
+    # [Required] Local IP address (eg: 192.168.1.100)
+    # [必填] 本机IP地址(如：192.168.1.100)
     address: 192.168.1.100
-    # [Required] Service tag (eg: ["primary"]
-    # [必填] 服务标签(如：["primary"])
-    tag: ["primary"]
     # [Required] Node health check interval (eg: 60s)
     # [必填] 节点健康检查时间间隔(如：60s)
     check-interval: "60s"
     # [Required] Node health check path (eg: /health)
     # [必填] 节点健康检查路径(如：/health)
     check-url: "/health"
+# [If app.cache is enabled, this field is required]
+# [若启用app.cache，则该字段必填]
 cache:
   # [Required] Cache server address (eg: localhost:6379)
   # [必填] 缓存服务器地址(如：localhost:6379)
@@ -87,6 +107,8 @@ cache:
   # [Required] Cache server DB (such as: 1)
   # [必填] 缓存服务器DB(如：1)
   db: 1
+# [If app.captcha is enabled, this field is required]
+# [若启用app.captcha，则该字段必填]
 captcha:
   # [Required] Captcha secret
   # [必填] 验证码密钥
@@ -101,9 +123,9 @@ log:
   fatal: 3
   error: 3
   warning: 3
-  info: 3
-  debug: 3
-  trace: 3
+  info: 1
+  debug: 1
+  trace: 1
 field:
   pagination:
     # [Required] The following is the name of the custom paging field returned by the API, which can be customized to adapt to different front-end frameworks (eg: pageNo)

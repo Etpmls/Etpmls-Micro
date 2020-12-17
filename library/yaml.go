@@ -14,9 +14,9 @@ type Configuration struct {
 	App struct{
 		RpcPort string	`yaml:"rpc-port"`
 		HttpPort string	`yaml:"http-port"`
+		Key string
 		Captcha bool
 		Register bool
-		Key string
 		Database bool
 		Cache bool
 		ServiceDiscovery	bool	`yaml:"service-discovery"`

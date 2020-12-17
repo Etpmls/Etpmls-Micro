@@ -95,13 +95,13 @@ func (this *consul) RegistrationService() error {
 
 	rpcConf := conf
 	rpcConf.ID = config.RpcId
-	rpcConf.Name = config.Prefix + "_" + config.RpcName
+	rpcConf.Name = config.Prefix + config.RpcName
 	rpcConf.Tags = config.RpcTag
 	rpcConf.Port = rpcPort
 
 	httpConf := conf
 	httpConf.ID = config.HttpId
-	httpConf.Name = config.Prefix + "_" + config.HttpName
+	httpConf.Name = config.Prefix + config.HttpName
 	httpConf.Tags = config.HttpTag
 	httpConf.Port = httpPort
 

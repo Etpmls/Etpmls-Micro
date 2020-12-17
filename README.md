@@ -37,6 +37,7 @@ import "github.com/Etpmls/Etpmls-Micro"
 ```
 
 ## Quick start
+
 ```go
 package main
 
@@ -59,3 +60,38 @@ This is the simplest application. You only need to implement three methods to su
 `RegisterHttpService`: Implement HTTP service
 
 `RegisterRoute`: Implement routing
+
+## Configuration
+
+EM needs to configure two files, one is environment variable configuration, the other is application configuration
+
+### Environment Variable Configuration
+
+> .env
+
+```
+DEBUG="FALSE"
+INIT_DATABASE="FALSE"
+```
+
+`DEBUG:`
+
+Whether to enable debugging mode. (TRUE/FALSE), If you fill in TRUE, the **storage/config/app.yaml**  file is read by default, If you fill in FALSE, the **storage/config/app_debug.yaml**  file is read by default
+
+`INIT_DATABASE:`
+
+Whether to initialize the database (TRUE/FALSE),
+
+it is recommended to use it when deploying EA for the first time.
+
+If this mode is turned on, initialization data will be automatically inserted into the database.
+
+Do not turn on this mode when data already exists!
+
+### Application configuration
+
+You need to create two files **app.yaml** (production environment configuration) and **app_debug.yaml** (debug environment configuration) under the storage/config folder. Which file the application uses depends on the value of your environment variable `DEBUG`.
+
+You can refer to the app.yaml.example file to configure.
+
+> The configuration example of Etpmls-Micro/file/app.yaml.example in the EM framework source code is always the latest. If your application configuration file is old, please copy the configuration file example from EM to your project.
