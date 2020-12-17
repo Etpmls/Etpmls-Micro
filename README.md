@@ -2,7 +2,17 @@
 
 Englsih | [简体中文](./README_zh-CN.md)
 
+## In Principle:
+
+Etpmls belongs to an organization, not an individual. The project needs more developers to have a future, and we eagerly hope that you can join us.
+
+1. Don't cheat, don't brush star, and would rather nobody use it than fake
+2. Swearing is welcome. If you feel that we are not writing well, you can scold it. We like negative comments because it allows us to see ourselves clearly.
+3. Developers are highly democratic, voting to determine the future of the project, and the minority obeys the majority, even if you want to `rm -rf /`
+4. Born for interest
+
 ## Prerequisites
+
 Before using, please make sure you meet the required skills of the framework
 
 1. Have the foundation of Protobuf
