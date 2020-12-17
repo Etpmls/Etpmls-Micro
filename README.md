@@ -11,6 +11,7 @@ Etpmls belongs to an organization, not an individual. The project needs more dev
 3. Swearing is welcome. If you feel that we are not writing well, you can scold it. We like negative comments because it allows us to see ourselves clearly.
 4. Developers are highly democratic, voting to determine the future of the project, and the minority obeys the majority, even if you want to `rm -rf /`
 5. Born for interest
+6. Take open source, repay open source
 
 ## Prerequisites
 
