@@ -128,7 +128,7 @@ go run main.go
 
 `/storage/log` : **[名称不可修改]** 存放日志文件
 
-`/storage/menu` : **[名称不可修改]** 存放前端自定义菜单的json文件
+`/storage/menu` : **[名称不可修改]** 存放前端自定义菜单的json文件，通常EM-Auth需要此目录，其他微服务应用可不创建此目录
 
 `/storage/upload` : 存放上传附件的目录，通常EM-Attachment需要此目录，其他微服务应用可不创建此目录
 

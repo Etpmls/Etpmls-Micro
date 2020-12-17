@@ -127,7 +127,7 @@ We do not have strict catalog specifications. You can completely define your cat
 
 `/storage/log`: **[Name cannot be modified]** to store log files
 
-`/storage/menu`: **[Name cannot be modified]** json file storing front-end custom menu
+`/storage/menu`: **[Name cannot be modified]** json file storing front-end custom menu, usually EM-Auth needs this directory, other microservice applications do not need to create this directory
 
 `/storage/upload`: The directory to store upload attachments, usually EM-Attachment needs this directory, other microservice applications do not need to create this directory
 
