@@ -37,19 +37,21 @@ import "github.com/Etpmls/Etpmls-Micro"
 
 ## 快速入门
 
+### 说明
+
 ```go
+// Etpmls-Micro/example/main.go
 package main
 
 import "github.com/Etpmls/Etpmls-Micro"
 
-func main() {
+func main()  {
 	var reg = em.Register{
-		GrpcServiceFunc:    	RegisterRpcService,
-		HttpServiceFunc:    	RegisterHttpService,
-		RouteFunc:          	RegisterRoute,
+		GrpcServiceFunc: RegisterRpcService,
+		HttpServiceFunc: RegisterHttpService,
+		RouteFunc:       RegisterRoute,
 	}
-    
-    reg.Init()
+	reg.Init()
 	reg.Run()
 }
 ```
@@ -60,6 +62,20 @@ func main() {
 `RegisterHttpService` ： 实现HTTP服务
 
 `RegisterRoute` : 实现路由
+
+### 运行
+
+EA目录中已经包含了示例，这是一个最精简的示例，以便于你的理解。
+
+进入Etpmls-Micro/example并且执行
+
+```shell
+go run main.go
+```
+
+在浏览器输入http://localhost:8081/hello，你会发现示例返回world。
+
+> 这个示例没有包含任何服务，仅仅只有一个HTTP路由。
 
 ## 配置
 
@@ -74,11 +90,13 @@ DEBUG="FALSE"
 INIT_DATABASE="FALSE"
 ```
 
+你可以参考.env.example文件来配置。
+
 `DEBUG:`
 
 是否开启调试模式。(TRUE/FALSE)，
 
-若填写TRUE，则默认读取配置文件**storage/config/app.yaml**， 若填写FALSE，则默认读取配置文件**storage/config/app_debug.yaml**
+若填写FALSE，则默认读取配置文件**storage/config/app.yaml**， 若填写TRUE，则默认读取配置文件**storage/config/app_debug.yaml**
 
 `INIT_DATABASE:`
 

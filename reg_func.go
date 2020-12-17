@@ -15,10 +15,13 @@ import (
 )
 
 func defaultHandleExit() {
-	err := em_library.ServiceDiscovery.CancelService()
-	if err != nil {
-		LogError.Output("Cancel service failed! " + MessageWithLineNum(err.Error()))
+	if em_library.Config.App.ServiceDiscovery {
+		err := em_library.ServiceDiscovery.CancelService()
+		if err != nil {
+			LogError.Output("Cancel service failed! " + MessageWithLineNum(err.Error()))
+		}
 	}
+
 	return
 }
 

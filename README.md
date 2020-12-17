@@ -38,31 +38,45 @@ import "github.com/Etpmls/Etpmls-Micro"
 
 ## Quick start
 
+### Explanation
+
 ```go
+// Etpmls-Micro/example/main.go
 package main
 
 import "github.com/Etpmls/Etpmls-Micro"
 
-func main() {
+func main()  {
 	var reg = em.Register{
-		GrpcServiceFunc:    	RegisterRpcService,
-		HttpServiceFunc:    	RegisterHttpService,
-		RouteFunc:          	RegisterRoute,
+		GrpcServiceFunc: RegisterRpcService,
+		HttpServiceFunc: RegisterHttpService,
+		RouteFunc:       RegisterRoute,
 	}
-    
-    reg.Init()
+	reg.Init()
 	reg.Run()
 }
 ```
 This is the simplest application. You only need to implement three methods to successfully register a microservice application.
-
-
 
 `RegisterRpcService`: Implement RPC service
 
 `RegisterHttpService`: Implement HTTP service
 
 `RegisterRoute`: Implement routing
+
+### Run
+
+A example has been included in the EA directory,This is one of the most condensed examples to facilitate your understanding.
+
+Enter Etpmls-Micro/example and execute
+
+```shell
+go run main.go
+```
+
+Enter http://localhost:8081/hello in the browser, and you will find the example returns world.
+
+> This example does not contain any services, only one HTTP route.
 
 ## Configuration
 
@@ -77,9 +91,11 @@ DEBUG="FALSE"
 INIT_DATABASE="FALSE"
 ```
 
+You can refer to the .env.example file to configure.
+
 `DEBUG:`
 
-Whether to enable debugging mode. (TRUE/FALSE), If you fill in TRUE, the **storage/config/app.yaml**  file is read by default, If you fill in FALSE, the **storage/config/app_debug.yaml**  file is read by default
+Whether to enable debugging mode. (TRUE/FALSE), If you fill in FALSE, the **storage/config/app.yaml**  file is read by default, If you fill in TRUE, the **storage/config/app_debug.yaml**  file is read by default
 
 `INIT_DATABASE:`
 

@@ -3,9 +3,6 @@ package main
 import (
 	"context"
 	"github.com/Etpmls/Etpmls-Micro"
-	"github.com/Etpmls/Etpmls-Micro/library"
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"net/http"
@@ -14,11 +11,10 @@ import (
 func main()  {
 	var reg = em.Register{
 		GrpcServiceFunc: RegisterRpcService,
-		GrpcMiddleware:  RegisterGrpcMiddleware,
 		HttpServiceFunc: RegisterHttpService,
 		RouteFunc:       RegisterRoute,
 	}
-
+	reg.Init()
 	reg.Run()
 }
 
@@ -39,30 +35,9 @@ func RegisterHttpService(ctx context.Context, mux *runtime.ServeMux, grpcServerE
 
 // Register Route
 func RegisterRoute(mux *runtime.ServeMux)  {
-	mux.HandlePath("GET", em_library.Config.ServiceDiscovery.Service.CheckUrl, func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
-		w.Write([]byte("hello"))
+	mux.HandlePath("GET", "/hello", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+		w.Write([]byte("world"))
 	})
 }
 
-
-// Register GRPC middleware
-// 注册GRPC中间件
-func RegisterGrpcMiddleware() *grpc.Server {
-	s := grpc.NewServer(
-		grpc.UnaryInterceptor(
-			grpc_middleware.ChainUnaryServer(
-				// Panic recover
-				grpc_recovery.UnaryServerInterceptor(),
-				// token auth
-				// grpc_auth.UnaryServerInterceptor(middleware.NewAuth().BasicVerify),
-				// middleware.DefaultMiddleware().Auth(),
-				// Captcha auth
-				// middleware.DefaultMiddleware().Captcha(),
-				// I18n
-				em.DefaultMiddleware().I18n(),
-			),
-		),
-	)
-	return s
-}
 
