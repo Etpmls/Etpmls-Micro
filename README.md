@@ -90,6 +90,72 @@ Enter http://localhost:8081/hello in the browser, and you will find the example 
 
 > This example does not contain any services, only one HTTP route.
 
+## Directory specification
+
+> Please note that the storage directory must fully comply with EM's naming conventions. The naming requirements for other directories are not mandatory. If you don't like our catalog conventions, you can skip this chapter.
+
+We do not have strict catalog specifications. You can completely define your catalog names (except for storage catalogs), but we recommend that you use our catalog specifications. Standardization of catalog names will help improve reading experience and improve the reading efficiency of other developers .
+
+```
+# The storage directory must comply with EM's naming convention
+/storage
+|______/config
+|______/language
+|______/log
+|______/menu
+|______/upload
+
+# The following directory naming is not mandatory, but it is recommended that you use it like this
+/src
+|______/application
+|______|______/client
+|______|______/database
+|______|______/middleware
+|______|______/model
+|______|______/protobuf
+|______|______|______proto
+|______|______/service
+
+|______/register
+```
+
+`/storage`: **[Name cannot be modified]** The directory where files that do not need to be compiled are stored
+
+`/storage/config`: **[Name cannot be modified]** to store application configuration files
+
+`/storage/language`: **[Name cannot be modified]** to store multi-language files
+
+`/storage/log`: **[Name cannot be modified]** to store log files
+
+`/storage/menu`: **[Name cannot be modified]** json file storing front-end custom menu
+
+`/storage/upload`: The directory to store upload attachments, usually EM-Attachment needs this directory, other microservice applications do not need to create this directory
+
+> The following directory naming is not mandatory, but it is recommended that you use it like this
+> /src
+
+`/src`: source code is placed in this directory
+
+`/src/application`: business logic, function
+
+`/src/application/client`: interact with other microservices and request other microservices as a client
+
+`/src/application/database`: database field definition
+
+`/src/application/middleware`: custom middleware
+
+`/src/application/model`: model, which handles the business logic of the service
+
+`/src/application/protobuf`: The file storage location after Protobuf compilation
+
+`/src/application/protobuf/proto`: File storage location before Protobuf compilation
+
+`/src/application/service`: It is equivalent to the controller in MVC, processing service requests
+
+`/src/application/service.go`: Define some declarations specific to the service (such as constants, variables)
+
+`/src/register`: registration logic (such as registering routes, registering middleware, registering databases, etc.)
+
 ## Configuration
 
 EM needs to configure two files, one is environment variable configuration, the other is application configuration

@@ -91,6 +91,71 @@ go run main.go
 
 > 这个示例没有包含任何服务，仅仅只有一个HTTP路由。
 
+## 目录规范
+
+> 请注意，storage目录下要完全符合EM的命名规范，对于其他目录的命名要求并不是强制性的，如果您不喜欢我们的目录规范，可以跳过本章。
+
+我们并没有严格的目录规范，您可以完全定义您的目录名（storage目录除外），但是我们推荐您使用我们的目录规范，目录名的标准化有助于提高阅读体验，提升其他开发者的阅读效率。
+
+```
+# storage目录要符合EM的命名规范
+/storage
+|______/config
+|______/language
+|______/log
+|______/menu
+|______/upload
+
+# 下面的目录命名我们并不强制，只是推荐您这样使用
+/src
+|______/application
+|______|______/client
+|______|______/database
+|______|______/middleware
+|______|______/model
+|______|______/protobuf
+|______|______|______proto
+|______|______/service
+
+|______/register
+```
+
+`/storage` : **[名称不可修改]**存放无需编译的文件的目录
+
+`/storage/config` : **[名称不可修改]**存放应用配置文件
+
+`/storage/language` : **[名称不可修改]**存放多语言文件
+
+`/storage/log` : **[名称不可修改]**存放日志文件
+
+`/storage/menu` : **[名称不可修改]**存放前端自定义菜单的json文件
+
+`/storage/upload` : 存放上传附件的目录，通常EM-Attachment需要此目录，其他微服务应用可不创建此目录
+
+> 下面的目录命名我们并不强制，只是推荐您这样使用
+
+`/src` : 源代码放在这个目录
+
+`/src/application` : 业务逻辑、功能
+
+`/src/application/client` : 与其他微服务交互，作为客户端请求其他微服务
+
+`/src/application/database` : 数据库字段定义
+
+`/src/application/middleware` : 自定义中间件
+
+`/src/application/model` : 模型，处理服务的业务逻辑
+
+`/src/application/protobuf` : Protobuf编译后的文件存放位置
+
+`/src/application/protobuf/proto` : Protobuf编译前的文件存放位置
+
+`/src/application/service`  : 相当于MVC中的controller，处理服务请求
+
+`/src/application/service.go`  : 定义该服务特有的一些声明等（如常量、变量）
+
+`/src/register` :注册逻辑（如注册路由、注册中间件、注册数据库等）
+
 ## 配置
 
 EM需要配置两个文件，一个是环境变量配置，另一个是应用配置
