@@ -49,6 +49,7 @@ func main() {
 		HttpServiceFunc:    	RegisterHttpService,
 		RouteFunc:          	RegisterRoute,
 	}
+    
     reg.Init()
 	reg.Run()
 }
@@ -81,6 +82,8 @@ INIT_DATABASE="FALSE"
 Whether to enable debugging mode. (TRUE/FALSE), If you fill in TRUE, the **storage/config/app.yaml**  file is read by default, If you fill in FALSE, the **storage/config/app_debug.yaml**  file is read by default
 
 `INIT_DATABASE:`
+
+> The default is False, if you want to enable this feature, you need to register DatabaseMigrate in em.Register
 
 Whether to initialize the database (TRUE/FALSE),
 

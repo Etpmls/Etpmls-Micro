@@ -48,6 +48,7 @@ func main() {
 		HttpServiceFunc:    	RegisterHttpService,
 		RouteFunc:          	RegisterRoute,
 	}
+    
     reg.Init()
 	reg.Run()
 }
@@ -80,6 +81,8 @@ INIT_DATABASE="FALSE"
 若填写TRUE，则默认读取配置文件**storage/config/app.yaml**， 若填写FALSE，则默认读取配置文件**storage/config/app_debug.yaml**
 
 `INIT_DATABASE:`
+
+> 默认为False，如果你想开启此功能，你需要在em.Register中注册DatabaseMigrate
 
 是否初始化数据库(TRUE/FALSE)，
 
