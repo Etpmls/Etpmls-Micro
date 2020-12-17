@@ -2,7 +2,7 @@
 
 Englsih | [简体中文](./README_zh-CN.md)
 
-## In Principle:
+## In Principle
 
 Etpmls belongs to an organization, not an individual. The project needs more developers to have a future, and we eagerly hope that you can join us.
 
