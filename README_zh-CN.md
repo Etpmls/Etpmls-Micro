@@ -73,7 +73,7 @@ EA目录中已经包含了示例，这是一个最精简的示例，以便于你
 go run main.go
 ```
 
-在浏览器输入http://localhost:8081/hello，你会发现示例返回world。
+在浏览器输入http://localhost:8081/hello ，你会发现示例返回world。
 
 > 这个示例没有包含任何服务，仅仅只有一个HTTP路由。
 
