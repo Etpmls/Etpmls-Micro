@@ -124,7 +124,7 @@ go run main.go
 
 `/storage/config` : **[名称不可修改]** 存放应用配置文件
 
-`/storage/language` : **[名称不可修改] **存放多语言文件
+`/storage/language` : **[名称不可修改]** 存放多语言文件
 
 `/storage/log` : **[名称不可修改]** 存放日志文件
 
