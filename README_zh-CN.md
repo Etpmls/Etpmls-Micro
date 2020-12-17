@@ -48,7 +48,7 @@ func main() {
 		HttpServiceFunc:    	RegisterHttpService,
 		RouteFunc:          	RegisterRoute,
 	}
-
+    reg.Init()
 	reg.Run()
 }
 ```

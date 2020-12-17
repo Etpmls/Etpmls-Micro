@@ -49,11 +49,13 @@ func main() {
 		HttpServiceFunc:    	RegisterHttpService,
 		RouteFunc:          	RegisterRoute,
 	}
-
+    reg.Init()
 	reg.Run()
 }
 ```
 This is the simplest application. You only need to implement three methods to successfully register a microservice application.
+
+
 
 `RegisterRpcService`: Implement RPC service
 
