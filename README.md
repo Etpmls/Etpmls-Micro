@@ -384,61 +384,25 @@ The gateway of this project uses Traefik as an example, and service discovery us
 We need to write the relevant configuration in the service-discovery.service.rpc/http.tag of the `storage/config/app[_debug].yaml` file. We provide an example for reference, and you can modify it directly on this basis.
 
 ```yaml
-service-discovery:
-  address: 192.168.3.219:8500
-  service:
-    rpc:
-      id: AuthRpcService-1
-      name: AuthRpcService
-      tag: []
-    http:
-      id: AuthHTTPService-1
-      name: AuthHttpService
       tag: [
-        "em.http.routers.em-AuthHttpService.entrypoints=web,websecure",
-        "em.http.routers.em-AuthHttpService.rule=Host(`[YOUR_DOMAIN]`) && PathPrefix(`/api/auth/`)",
-        "em.http.routers.em-AuthHttpService.tls.certresolver=myresolver",
-        "em.http.routers.em-AuthHttpService.middlewares=forwardAuth@file,circuitBreaker_em-auth@file",
-        "em.http.routers.em-AuthHttpService.service=em-AuthHttpService",
+        "em.http.routers.[YOUR_SERVICE_NAME].entrypoints=web,websecure",
+        "em.http.routers.[YOUR_SERVICE_NAME].rule=Host(`[YOUR_DOMAIN]`) && PathPrefix(`[YOUR_SERVICE_ROUTE_PATH]`)",
+        "em.http.routers.[YOUR_SERVICE_NAME].tls.certresolver=myresolver",
+        "em.http.routers.[YOUR_SERVICE_NAME].middlewares=circuitBreaker_em-attachment@file,forwardAuth@file",
+        "em.http.routers.[YOUR_SERVICE_NAME].service=[YOUR_SERVICE_NAME]",
 
-        "em.http.routers.em-AuthHttpService-checkAuth.entrypoints=web,websecure",
-        "em.http.routers.em-AuthHttpService-checkAuth.rule=Host(`[YOUR_DOMAIN]`,`[YOUR_TRAEFIK_ADDRESS]`) && Path(`/api/checkAuth`)",
-        "em.http.routers.em-AuthHttpService-checkAuth.tls.certresolver=myresolver",
-        "em.http.routers.em-AuthHttpService-checkAuth.middlewares=circuitBreaker_em-auth@file",
-        "em.http.routers.em-AuthHttpService-checkAuth.service=em-AuthHttpService",
-
-        "em.http.services.em-AuthHttpService.loadbalancer.passhostheader=true",
+        "em.http.services.[YOUR_SERVICE_NAME].loadbalancer.passhostheader=true",
       ]
-    prefix: em-
-    address: 192.168.3.225
-    check-interval: 5s
-    check-url: /health
 ```
 
-Replace [YOUR_DOMAIN] with your domain name, and [YOUR_TRAEFIK_ADDRESS] with Traefik address
+> [YOUR_DOMAIN]
 
-The following content is a brief explanation, please refer to other chapters for specific configuration of traefik
+Replace with your domain name
 
+> [YOUR_SERVICE_ROUTE]
 
+Replace with your service path, such as /api/attachment/
 
->  em.http.routers.em-AuthHttpService.entrypoints=web,websecure
+> [YOUR_SERVICE_NAME]
 
-on behalf of monitoring port 80 (web) and 443 (websecure), you need to define `web` and `websecure` in traefik related files
-
-
-
-> em.http.routers.em-AuthHttpService.rule=Host(\`[YOUR_DOMAIN]\`) && PathPrefix(\`/api/auth/\`)
-
-on behalf of routing, the traffic that meets the requirements will pass the request
-
-
-
-> em.http.routers.em-AuthHttpService.tls.certresolver=myresolver
-
-represents the definition of the certificate, `myresolver` needs to be defined in the traefik related files
-
-
-
->  em.http.routers.em-AuthHttpService.middlewares=circuitBreaker_em-auth@file,forwardAuth@file
-
-stands for fuse & HTTP auth dynamic permission authentication middleware, `circuitBreaker_em-auth` ,`forwardAuth`needs to be defined in traefik related files
+Replace with your service name

@@ -386,61 +386,25 @@ INIT_DATABASE="FALSE"
 我们需要把相关配置写在`storage/config/app[_debug].yaml`文件的service-discovery.service.rpc/http.tag中，我们提供一个示例参考，您可以在此基础上直接修改。
 
 ```yaml
-service-discovery:
-  address: 192.168.3.219:8500
-  service:
-    rpc:
-      id: AuthRpcService-1
-      name: AuthRpcService
-      tag: []
-    http:
-      id: AuthHTTPService-1
-      name: AuthHttpService
       tag: [
-        "em.http.routers.em-AuthHttpService.entrypoints=web,websecure",
-        "em.http.routers.em-AuthHttpService.rule=Host(`[YOUR_DOMAIN]`) && PathPrefix(`/api/auth/`)",
-        "em.http.routers.em-AuthHttpService.tls.certresolver=myresolver",
-        "em.http.routers.em-AuthHttpService.middlewares=forwardAuth@file,circuitBreaker_em-auth@file",
-        "em.http.routers.em-AuthHttpService.service=em-AuthHttpService",
+        "em.http.routers.[YOUR_SERVICE_NAME].entrypoints=web,websecure",
+        "em.http.routers.[YOUR_SERVICE_NAME].rule=Host(`[YOUR_DOMAIN]`) && PathPrefix(`[YOUR_SERVICE_ROUTE_PATH]`)",
+        "em.http.routers.[YOUR_SERVICE_NAME].tls.certresolver=myresolver",
+        "em.http.routers.[YOUR_SERVICE_NAME].middlewares=circuitBreaker_em-attachment@file,forwardAuth@file",
+        "em.http.routers.[YOUR_SERVICE_NAME].service=[YOUR_SERVICE_NAME]",
 
-        "em.http.routers.em-AuthHttpService-checkAuth.entrypoints=web,websecure",
-        "em.http.routers.em-AuthHttpService-checkAuth.rule=Host(`[YOUR_DOMAIN]`,`[YOUR_TRAEFIK_ADDRESS]`) && Path(`/api/checkAuth`)",
-        "em.http.routers.em-AuthHttpService-checkAuth.tls.certresolver=myresolver",
-        "em.http.routers.em-AuthHttpService-checkAuth.middlewares=circuitBreaker_em-auth@file",
-        "em.http.routers.em-AuthHttpService-checkAuth.service=em-AuthHttpService",
-
-        "em.http.services.em-AuthHttpService.loadbalancer.passhostheader=true",
+        "em.http.services.[YOUR_SERVICE_NAME].loadbalancer.passhostheader=true",
       ]
-    prefix: em-
-    address: 192.168.3.225
-    check-interval: 5s
-    check-url: /health
 ```
 
-把[YOUR_DOMAIN]替换为你的域名，[YOUR_TRAEFIK_ADDRESS]替换为Traefik地址
+> [YOUR_DOMAIN]
 
-以下内容为简要注解，traefik相关具体配置参照其他章节
+替换为你的域名
 
+> [YOUR_SERVICE_ROUTE]
 
+替换为你的服务路径，如/api/attachment/
 
-> em.http.routers.em-AuthHttpService.entrypoints=web,websecure
+> [YOUR_SERVICE_NAME]
 
-代表监听80（web）和443（websecure）端口，需要在traefik相关文件中定义`web`，`websecure`
-
-
-
-> em.http.routers.em-AuthHttpService.rule=Host(\`[YOUR_DOMAIN]\`) && PathPrefix(\`/api/auth/\`)
-
-代表路由，符合要求的流量将通过请求
-
-
-
-> em.http.routers.em-AuthHttpService.tls.certresolver=myresolver
-
-代表定义证书，`myresolver` 需要在traefik相关文件中定义
-
-
-
->  em.http.routers.em-AuthHttpService.middlewares=circuitBreaker_em-auth@file,forwardAuth@file
-
-代表熔断器和HTTP auth动态权限认证中间件，`circuitBreaker_em-auth` ，`forwardAuth` 需要在traefik相关文件中定义
+替换为你的服务名
