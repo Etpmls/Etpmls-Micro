@@ -30,6 +30,8 @@ Etpmls-Micro (EM for short) is a micro-service framework, using this framework c
 >
 >[EM-Attachment](https://github.com/Etpmls/EM-Attachment): Attachment center, used to process attachments of various microservices.
 
+![Process](docs/images/Process.jpg)
+
 ## Version Description
 
 Our version format is: vA.B.C,

@@ -31,6 +31,8 @@ Etpmls-Micro（简称EM）是一个微服务框架，使用本框架可以在短
 >
 >[EM-Attachment](https://github.com/Etpmls/EM-Attachment)： 附件中心，用于处理各个微服务的附件。
 
+![Process](docs/images/Process.jpg)
+
 ## 版本说明
 
 我们的版本格式为：vA.B.C，
