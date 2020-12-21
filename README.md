@@ -18,8 +18,8 @@ Etpmls belongs to an organization, not an individual. The project needs more dev
 Before using, please make sure you meet the required skills of the framework
 
 1. Have the foundation of Protobuf
-
 2. Have a foundation of Go
+3. Have a foundation of Docker
 
 ## Introduction
 Etpmls-Micro (EM for short) is a micro-service framework, using this framework can quickly develop your micro-service applications in a short time.This project is developed based on Grpc+Grpc Gateway.
@@ -156,11 +156,187 @@ We do not have strict catalog specifications. You can completely define your cat
 
 `/src/register`: registration logic (such as registering routes, registering middleware, registering databases, etc.)
 
+## Environment setup
+
+This project needs to combine Traefik (gateway) and Consul (service discovery), and only post the relevant file code for the construction, and will not explain the detailed principles in detail. For specific details, please refer to the official documents. [Traefik](https://doc.traefik.io/) [Consul](https://www.consul.io/docs)
+
+Create a folder to store docker-compose, this article uses `.` to represent the current directory
+
+> ./docker-compose.yml
+
+```yaml
+version: '3'
+    
+services:
+  traefik:
+    # The official v2 Traefik docker image
+    image: traefik:v2.4
+    environment:
+    - TZ=Asia/Shanghai
+    # Enables the web UI and tells Traefik to listen to docker
+    command: --api.insecure=true --providers.docker
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+      - "443:443"
+    restart: on-failure
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik:/etc/traefik
+    networks:
+      em:
+       ipv4_address: [##Define the IP address of traefik, such as 10.0.0.2##]
+      
+  consul:
+    image: consul:1.8.5
+    volumes:
+      - ./consul/data:/consul/data
+    ports:
+      - "8300:8300/tcp"
+      - "8301:8301/udp"
+      - "8302:8302/udp"
+      - "8500:8500/tcp"
+      - "53:8600/udp"
+    restart: on-failure
+    networks:
+      em:
+       ipv4_address: [##Define the IP address of consul, such as 10.0.0.2##]
+       
+networks:
+ em:
+  ipam:
+   driver: default
+   config:
+    - subnet: "[##Define the gateway address, such as 10.0.0.0/24##]"
+```
+
+> ./trafik/traefik.yaml
+
+```yaml
+api:
+  dashboard: true
+ 
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+    forwardedHeaders:
+     trustedIPs:
+     - "[##Fill in the gateway address you defined, such as 10.0.0.0/24##]"
+  dashboard:
+    address: ":8080"
+
+providers:
+  file:
+    directory: /etc/traefik/config
+  consulCatalog:
+   refreshInterval: 30s
+   prefix: em
+   endpoint:
+    address: [##Define the address and port of consul, such as 10.0.0.3:8500##]
+
+
+certificatesResolvers:
+  myresolver:
+    acme:
+      email: [##Email, used to obtain SSL certificate##]
+      storage: acme.json
+      httpChallenge:
+        entryPoint: web
+        
+log:
+  filePath: "/etc/traefik/log/error.log"
+  format: "json"
+  level: WARN
+accessLog:
+  filePath: "/etc/traefik/log/access.log"
+  format: "json"
+  bufferingSize: 100
+```
+
+> ./traefik/config/dashboard.yaml
+
+```yaml
+http:
+ routers:
+  dashboard:
+   entryPoints:
+   - "dashboard"
+   rule: (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
+   service: api@internal
+   middlewares:
+    - auth
+
+ middlewares:
+  auth:
+   basicAuth:
+    users:
+    - "admin:$apr1$sadEhKwW$BNpyOakcbLp/P7JyP5ghs0"     # admin admin
+```
+
+> ./traefik/config/em.yaml
+
+```yaml
+http:
+ routers:
+  em-template:
+    entryPoints:
+    - "web"
+    - "websecure"
+    rule: "Host(`[##Fill in the website domain name, such as google.com##]`)"
+    service: em-template
+    middlewares:
+     - rateLimit
+    tls: 
+     certResolver: myresolver
+
+ middlewares:
+  forwardAuth:
+   forwardAuth:
+    address: "[##Fill in the address defined by traefik + the address for authorization verification, such as https://10.0.0.2/api/checkAuth##]"
+    tls:
+     insecureSkipVerify: true
+  rateLimit:
+   rateLimit:
+    average: 1000
+    period: 10s
+    burst: 2000
+  circuitBreaker_em-auth:
+   circuitBreaker:
+    expression: "NetworkErrorRatio() > 0.30 || LatencyAtQuantileMS(50.0) > 3000"
+  circuitBreaker_em-attachment:
+   circuitBreaker:
+    expression: "NetworkErrorRatio() > 0.30 || LatencyAtQuantileMS(50.0) > 3000"
+       
+ services:
+  em-template:
+   loadBalancer:
+    servers:
+    - url: "[##Define the front-end address, such as http://192.168.3.225:9527/##]"
+```
+
+Run docker-compose
+
+```shell
+docker-compose up -d
+```
+
 ## Configuration
+
+### EM Configuration
 
 EM needs to configure two files, one is environment variable configuration, the other is application configuration
 
-### Environment Variable Configuration
+#### Environment Variable Configuration
 
 > .env
 
@@ -187,10 +363,82 @@ If this mode is turned on, initialization data will be automatically inserted in
 
 Do not turn on this mode when data already exists!
 
-### Application configuration
+#### Application configuration
 
 You need to create two files **app.yaml** (production environment configuration) and **app_debug.yaml** (debug environment configuration) under the storage/config folder. Which file the application uses depends on the value of your environment variable `DEBUG`.
 
 You can refer to the app.yaml.example file to configure.
 
 > The configuration example of Etpmls-Micro/file/app.yaml.example in the EM framework source code is always the latest. If you plan to upgrade from a lower version to a higher version of the EM framework, please copy the latest configuration file example from EM to your project.
+
+### Gateway configuration
+
+The gateway of this project uses Traefik as an example, and service discovery uses Consul as an example. If you want to integrate the gateway and service discovery, you need to configure the gateway.
+
+> Traefik official reference article
+>
+> https://doc.traefik.io/traefik/providers/consul-catalog/
+>
+> https://doc.traefik.io/traefik/routing/providers/consul-catalog/
+
+We need to write the relevant configuration in the service-discovery.service.rpc/http.tag of the `storage/config/app[_debug].yaml` file. We provide an example for reference, and you can modify it directly on this basis.
+
+```yaml
+service-discovery:
+  address: 192.168.3.219:8500
+  service:
+    rpc:
+      id: AuthRpcService-1
+      name: AuthRpcService
+      tag: []
+    http:
+      id: AuthHTTPService-1
+      name: AuthHttpService
+      tag: [
+        "em.http.routers.em-AuthHttpService.entrypoints=web,websecure",
+        "em.http.routers.em-AuthHttpService.rule=Host(`[YOUR_DOMAIN]`) && PathPrefix(`/api/auth/`)",
+        "em.http.routers.em-AuthHttpService.tls.certresolver=myresolver",
+        "em.http.routers.em-AuthHttpService.middlewares=forwardAuth@file,circuitBreaker_em-auth@file",
+        "em.http.routers.em-AuthHttpService.service=em-AuthHttpService",
+
+        "em.http.routers.em-AuthHttpService-checkAuth.entrypoints=web,websecure",
+        "em.http.routers.em-AuthHttpService-checkAuth.rule=Host(`[YOUR_DOMAIN]`,`[YOUR_TRAEFIK_ADDRESS]`) && Path(`/api/checkAuth`)",
+        "em.http.routers.em-AuthHttpService-checkAuth.tls.certresolver=myresolver",
+        "em.http.routers.em-AuthHttpService-checkAuth.middlewares=circuitBreaker_em-auth@file",
+        "em.http.routers.em-AuthHttpService-checkAuth.service=em-AuthHttpService",
+
+        "em.http.services.em-AuthHttpService.loadbalancer.passhostheader=true",
+      ]
+    prefix: em-
+    address: 192.168.3.225
+    check-interval: 5s
+    check-url: /health
+```
+
+Replace [YOUR_DOMAIN] with your domain name, and [YOUR_TRAEFIK_ADDRESS] with Traefik address
+
+The following content is a brief explanation, please refer to other chapters for specific configuration of traefik
+
+
+
+>  em.http.routers.em-AuthHttpService.entrypoints=web,websecure
+
+on behalf of monitoring port 80 (web) and 443 (websecure), you need to define `web` and `websecure` in traefik related files
+
+
+
+> em.http.routers.em-AuthHttpService.rule=Host(\`[YOUR_DOMAIN]\`) && PathPrefix(\`/api/auth/\`)
+
+on behalf of routing, the traffic that meets the requirements will pass the request
+
+
+
+> em.http.routers.em-AuthHttpService.tls.certresolver=myresolver
+
+represents the definition of the certificate, `myresolver` needs to be defined in the traefik related files
+
+
+
+>  em.http.routers.em-AuthHttpService.middlewares=circuitBreaker_em-auth@file,forwardAuth@file
+
+stands for fuse & HTTP auth dynamic permission authentication middleware, `circuitBreaker_em-auth` ,`forwardAuth`needs to be defined in traefik related files
