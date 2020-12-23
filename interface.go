@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	JwtToken         = Interface_Jwt(em_library.NewJwtGo(em_library.Config.App.Key))
-	I18n             = Interface_I18n(&em_library.Go_i18n{})
+	JwtToken         = Interface_Jwt(em_library.NewJwtGo())
+	I18n             = Interface_I18n(em_library.NewGoI18n())
 	Cache            = Interface_Cache(em_library.NewRedis())
 	Log              = Interface_Log(em_library.NewLogrus())
 	Captcha          = Interface_Captcha(em_library.NewRecaptcha())
@@ -20,10 +20,10 @@ var (
 // Jwt token interface
 // JWT 令牌接口
 type Interface_Jwt interface {
-	CreateToken(interface{}) (string, error)
-	ParseToken(string) (interface{}, error)
-	GetIdByToken(string) (uint, error)                  // Get user ID
-	GetIssuerByToken(string) (issuer string, err error) // Get Username
+	CreateToken(c interface{}, secret string) (string, error)
+	ParseToken(tokenString string, secret string) (interface{}, error)
+	GetIdByToken(tokenString string, secret string) (int, error)                  // Get user ID
+	GetIssuerByToken(tokenString string, secret string) (issuer string, err error) // Get Username
 }
 
 // i18n interface

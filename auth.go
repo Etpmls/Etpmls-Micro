@@ -2,6 +2,10 @@ package em
 
 import (
 	"context"
+	em_library "github.com/Etpmls/Etpmls-Micro/library"
+	"github.com/dgrijalva/jwt-go"
+	"strconv"
+	"time"
 )
 
 type auth struct {
@@ -10,15 +14,39 @@ type auth struct {
 
 // Verify that the token is valid
 // 验证token是否有效
-func (this *auth)VerifyToken(token string) (bool, error) {
+func (this *auth) VerifyToken(token string) (bool, error) {
 	// Parse token
-	_, err := JwtToken.ParseToken(token)
+	_, err := JwtToken.ParseToken(token, em_library.Config.App.Key)
 	if err != nil {
 		LogInfo.Output(MessageWithLineNum(err.Error()))
 		return false, err
 	}
 
 	return true, nil
+}
+
+// Parse the token
+// 解析token
+func (this *auth) ParseToken(tokenString string) (interface{}, error) {
+	return JwtToken.ParseToken(tokenString, em_library.Config.App.Key)
+}
+
+// Create a general token
+// 创建通用token
+func (this *auth) CreateGeneralToken(userId int, username string) (string, error) {
+	return JwtToken.CreateToken(&jwt.StandardClaims{
+		Id: strconv.Itoa(userId),                                                          // 用户ID
+		ExpiresAt: time.Now().Add(time.Second * em_library.Config.App.TokenExpirationTime).Unix(), // 过期时间 - 12个小时
+		Issuer:    username,                                                                    // 发行者
+	}, em_library.Config.App.Key)
+}
+
+func (this *auth) GetIdByToken(token string) (int, error) {
+	return JwtToken.GetIdByToken(token, em_library.Config.App.Key)
+}
+
+func (this *auth) GetIssuerByToken(token string) (string, error) {
+	return JwtToken.GetIssuerByToken(token, em_library.Config.App.Key)
 }
 
 // Get token from ctx

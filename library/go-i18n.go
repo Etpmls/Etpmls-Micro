@@ -48,12 +48,16 @@ func Init_GoI18n() {
 }
 
 
-type Go_i18n struct {}
+type go_i18n struct {}
+
+func NewGoI18n() *go_i18n {
+	return &go_i18n{}
+}
 
 
 // Translate
 // 翻译
-func (this *Go_i18n) TranslateString (s string, lang string) string {
+func (this *go_i18n) TranslateString (s string, lang string) string {
 	localizer := i18n.NewLocalizer(Instance_GoI18n, lang)
 	ctx := localizer.MustLocalize(&i18n.LocalizeConfig{
 		MessageID:      s,
@@ -64,7 +68,7 @@ func (this *Go_i18n) TranslateString (s string, lang string) string {
 
 // Translate from request
 // 从请求中翻译
-func (this *Go_i18n) TranslateFromRequest(ctx context.Context, str string) string {
+func (this *go_i18n) TranslateFromRequest(ctx context.Context, str string) string {
 	var lang string
 	if ctx == nil {
 		lang = "en"

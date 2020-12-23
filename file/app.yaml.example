@@ -5,8 +5,8 @@ app:
   # [Required] Application HTTP service port number (eg: "8081")
   # [必填] 应用HTTP服务端口号(如："8081")
   http-port: "8081"
-  # [Optional] Encrypted salt, leave it blank to generate automatically
-  # [可选]加密盐，留空则自动生成
+  # [Optional] Encrypted salt, leave it blank to generate automatically, Microservices communicating with each other should be consistent
+  # [可选]加密盐，留空则自动生成，相互通讯的微服务应保持一致
   key:
   # [Required] Whether to enable the database function, if you have installed postgresql, please fill in true, otherwise fill in false, the default is false
   # [必填] 是否开启数据库功能，如果您安装了postgresql等，请填写true，否则填写false，默认为false

@@ -9,22 +9,21 @@ import (
 )
 
 type jwtGo struct {
-	MySigningKey []byte
 }
 
-func NewJwtGo(salt string) *jwtGo {
-	return &jwtGo{MySigningKey: []byte(salt)}
+func NewJwtGo() *jwtGo {
+	return &jwtGo{}
 }
 
 // Create Token
 // 创建令牌
-func (j *jwtGo)CreateToken(c interface{}) (t string, err error) {
+func (j *jwtGo)CreateToken(c interface{}, secret string) (t string, err error) {
 	claims, ok := c.(*jwt.StandardClaims)
 	if !ok {
 		return "", err
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	ss, err := token.SignedString(j.MySigningKey)
+	ss, err := token.SignedString([]byte(secret))
 	if err != nil {
 		return t, err
 	}
@@ -34,9 +33,9 @@ func (j *jwtGo)CreateToken(c interface{}) (t string, err error) {
 
 // Parse Token
 // 解析令牌
-func (j *jwtGo)ParseToken(tokenString string) (t interface{}, err error) {
+func (j *jwtGo)ParseToken(tokenString string, secret string) (t interface{}, err error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return j.MySigningKey, nil
+		return []byte(secret), nil
 	})
 
 	if token == nil || err != nil {
@@ -62,8 +61,8 @@ func (j *jwtGo)ParseToken(tokenString string) (t interface{}, err error) {
 
 // Get Username
 // 获取用户名
-func (j *jwtGo)GetIssuerByToken(tokenString string) (issuer string, err error) {
-	tmp, err := j.ParseToken(tokenString)
+func (j *jwtGo)GetIssuerByToken(tokenString string, secret string) (issuer string, err error) {
+	tmp, err := j.ParseToken(tokenString, secret)
 	if err != nil {
 		return "", err
 	}
@@ -88,8 +87,8 @@ func (j *jwtGo)GetIssuerByToken(tokenString string) (issuer string, err error) {
 
 // Get User ID
 // 获取用户ID
-func (j *jwtGo)GetIdByToken(tokenString string) (userId uint, err error) {
-	tmp, err := j.ParseToken(tokenString)
+func (j *jwtGo)GetIdByToken(tokenString string, secret string) (userId int, err error) {
+	tmp, err := j.ParseToken(tokenString, secret)
 	if err != nil {
 		return 0, err
 	}
@@ -105,12 +104,10 @@ func (j *jwtGo)GetIdByToken(tokenString string) (userId uint, err error) {
 			return 0, errors.New("令牌ID解析错误！")
 		}
 
-		tmpId, err := strconv.Atoi(id)
+		userId, err := strconv.Atoi(id)
 		if err != nil {
 			return 0, errors.New("令牌中的ID不是数字！")
 		}
-
-		userId = uint(tmpId)
 
 		return userId, nil
 	}
