@@ -113,6 +113,15 @@ func messageWithLineNum_Local(msg string) string {
 	}
 	return strings.Join(list, " => ") + " => Message: " + msg
 }
+// Message(or Error) with line number - Only one record
+// 消息(或错误)带行号 - 仅一条记录
+func MessageWithLineNum_OneRecord(msg string) string {
+	_, file, line, ok := runtime.Caller(1)
+	if ok {
+		return file+":"+strconv.Itoa(line) + " => Message: " + msg
+	}
+	return msg
+}
 
 
 // Generate errors with both custom messages and error messages
