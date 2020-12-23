@@ -84,6 +84,8 @@ func (this *Register) Init() {
 	library.Init_Validator()
 	library.Init_GoI18n()
 	library.Init_HystrixGo(library.Config.App.CommunicationTimeout)
+
+	Micro.Config = &library.Config
 }
 
 func (this *Register) Run()  {
