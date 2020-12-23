@@ -22,7 +22,7 @@ type cli struct {
 func (this *cli) ConnectService(service_name string) (error) {
 	addr, err := ServiceDiscovery.GetServiceAddr(service_name, nil)
 	if err != nil {
-		LogError.Output(MessageWithLineNum(err.Error()))
+		LogError.Output(MessageWithLineNum_OneRecord(err.Error()))
 		return err
 	}
 
