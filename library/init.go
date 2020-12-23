@@ -29,7 +29,7 @@ func (this *init_Library) Start()  {
 		}
 	}
 
-	this.logFile, err  = os.OpenFile(fileName, os.O_WRONLY | os.O_APPEND | os.O_CREATE, os.ModeAppend)
+	this.logFile, err  = os.OpenFile(fileName, os.O_WRONLY | os.O_APPEND | os.O_CREATE, os.ModePerm)
 
 	if err != nil {
 		log.Fatalln(err)
