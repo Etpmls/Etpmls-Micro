@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	Version_Framework = "1.3.0"
+	Version_Framework = "1.4.0"
 )
 
 var (

@@ -6,7 +6,6 @@ import (
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 	"path/filepath"
-	"runtime"
 )
 
 var (
@@ -27,19 +26,6 @@ func Init_GoI18n() {
 	}
 
 	for _, v:=range list {
-		Instance_GoI18n.MustLoadMessageFile(v)
-	}
-
-	// Load Language
-	_, fileStr, _, _ := runtime.Caller(0)
-
-	lang_list, err := filepath.Glob(filepath.Dir(filepath.Dir(fileStr)) + "/file/*.toml")
-	if err != nil || len(lang_list) < 1 {
-		initLog.Fatalln("[ERROR]", "Failed to load language pack!", " Error:", err)
-		return
-	}
-
-	for _, v:=range lang_list {
 		Instance_GoI18n.MustLoadMessageFile(v)
 	}
 
