@@ -5,6 +5,7 @@ package em_library
 import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"os"
 	"time"
@@ -15,15 +16,22 @@ type Configuration struct {
 		RpcPort string	`yaml:"rpc-port"`
 		HttpPort string	`yaml:"http-port"`
 		Key string
-		Captcha bool
-		Register bool
-		Database bool
-		Cache bool
-		ServiceDiscovery	bool	`yaml:"service-discovery"`
+		EnableDatabase bool	`yaml:"enable-database"`
+		EnableCache bool	`yaml:"enable-cache"`
+		EnableServiceDiscovery	bool	`yaml:"enable-service-discovery"`
 		TokenExpirationTime time.Duration	`yaml:"token-expiration-time"`
 		UseHttpCode bool	`yaml:"use-http-code"`
-		TimeZone string		`yaml:"time-zone"`
 		CommunicationTimeout time.Duration	`yaml:"communication-timeout"`
+	}
+	Log struct {
+		Level string
+		Panic	int
+		Fatal	int
+		Error	int
+		Warning	int
+		Info	int
+		Debug	int
+		Trace	int
 	}
 	Database struct{
 		Host string
@@ -32,6 +40,7 @@ type Configuration struct {
 		User string
 		Password string
 		Prefix string
+		TimeZone string		`yaml:"time-zone"`
 	}
 	ServiceDiscovery struct{
 		Address string
@@ -62,23 +71,6 @@ type Configuration struct {
 		Secret string
 		Timeout time.Duration
 	}
-	Log struct {
-		Level string
-		Panic	int
-		Fatal	int
-		Error	int
-		Warning	int
-		Info	int
-		Debug	int
-		Trace	int
-	}
-	Field struct{
-		Pagination struct {
-			Number string
-			Size string
-			Count string
-		}
-	}
 }
 
 var Config = Configuration{}
@@ -94,13 +86,13 @@ func Init_Yaml() {
 
 	b, err := ioutil.ReadFile(yamlPath)
 	if err != nil {
-		Instance_Logrus.Fatal("Failed to read the Configuration file! Error:", err)
+		initLog.Println("[ERROR]", "Failed to read the Configuration file! Error:", err)
 		return
 	}
 
 	err = yaml.Unmarshal(b, &Config)
 	if err != nil {
-		Instance_Logrus.Fatal("Failed to unmarshal the Configuration file! Error:", err)
+		initLog.Fatal("Failed to unmarshal the Configuration file! Error:", err)
 		return
 	}
 
@@ -110,17 +102,18 @@ func Init_Yaml() {
 
 		out, err := yaml.Marshal(Config)
 		if err != nil {
-			Instance_Logrus.Fatal("Failed to parse the Configuration file into yaml format!", err)
+			initLog.Fatal("Failed to parse the Configuration file into yaml format!", err)
 			return
 		}
 
 		err = ioutil.WriteFile(yamlPath, out, os.ModeAppend)
 		if err != nil {
-			Instance_Logrus.Fatal("Failed to write yaml Configuration file!", err)
+			initLog.Fatal("Failed to write yaml Configuration file!", err)
 			return
 		}
 	}
 
+	initLog.Println("[INFO]", "Successfully loaded configuration file!")
 	return
 }
 
@@ -141,13 +134,13 @@ func Init_CustomYaml(path, debug_path string, structAddr interface{})  {
 
 	b, err := ioutil.ReadFile(yamlPath)
 	if err != nil {
-		Instance_Logrus.Fatal("Failed to read the Configuration file! Error:", err)
+		log.Fatal("Failed to read the Configuration file! Error:", err)
 		return
 	}
 
 	err = yaml.Unmarshal(b, structAddr)
 	if err != nil {
-		Instance_Logrus.Fatal("Failed to unmarshal the Configuration file! Error:", err)
+		log.Fatal("Failed to unmarshal the Configuration file! Error:", err)
 		return
 	}
 }

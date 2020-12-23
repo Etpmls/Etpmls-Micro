@@ -71,7 +71,7 @@ type OutputLog struct {
 func (o OutputLog) Output (info interface{}) {
 	l, err := ParseLogLevel(library.Config.Log.Level)
 	if err != nil {
-		library.Log.Panic(MessageWithLineNum("Error in the log function!"))
+		Log.Panic(MessageWithLineNum("Error in the log function!"))
 		return
 	}
 
@@ -79,7 +79,7 @@ func (o OutputLog) Output (info interface{}) {
 	case PanicLevel:
 		switch library.Config.Log.Panic {
 		case LOG_MODE_ONLY:
-			library.Log.Panic(info)
+			Log.Panic(info)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
 				fmt.Println(info)
@@ -88,18 +88,18 @@ func (o OutputLog) Output (info interface{}) {
 			if l >= o.Level {
 				fmt.Println(info)
 			}
-			library.Log.Panic(info)
+			Log.Panic(info)
 		default:
 			if l >= o.Level {
 				fmt.Println(info)
 			}
-			library.Log.Panic(info)
+			Log.Panic(info)
 		}
 
 	case FatalLevel:
 		switch library.Config.Log.Fatal {
 		case LOG_MODE_ONLY:
-			library.Log.Fatal(info)
+			Log.Fatal(info)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
 				fmt.Println(info)
@@ -108,18 +108,18 @@ func (o OutputLog) Output (info interface{}) {
 			if l >= o.Level {
 				fmt.Println(info)
 			}
-			library.Log.Fatal(info)
+			Log.Fatal(info)
 		default:
 			if l >= o.Level {
 				fmt.Println(info)
 			}
-			library.Log.Fatal(info)
+			Log.Fatal(info)
 		}
 
 	case ErrorLevel:
 		switch library.Config.Log.Error {
 		case LOG_MODE_ONLY:
-			library.Log.Error(info)
+			Log.Error(info)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
 				fmt.Println(info)
@@ -128,18 +128,18 @@ func (o OutputLog) Output (info interface{}) {
 			if l >= o.Level {
 				fmt.Println(info)
 			}
-			library.Log.Error(info)
+			Log.Error(info)
 		default:
 			if l >= o.Level {
 				fmt.Println(info)
 			}
-			library.Log.Error(info)
+			Log.Error(info)
 		}
 
 	case WarnLevel:
 		switch library.Config.Log.Warning {
 		case LOG_MODE_ONLY:
-			library.Log.Warning(info)
+			Log.Warning(info)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
 				fmt.Println(info)
@@ -148,18 +148,18 @@ func (o OutputLog) Output (info interface{}) {
 			if l >= o.Level {
 				fmt.Println(info)
 			}
-			library.Log.Warning(info)
+			Log.Warning(info)
 		default:
 			if l >= o.Level {
 				fmt.Println(info)
 			}
-			library.Log.Warning(info)
+			Log.Warning(info)
 		}
 
 	case InfoLevel:
 		switch library.Config.Log.Info {
 		case LOG_MODE_ONLY:
-			library.Log.Info(info)
+			Log.Info(info)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
 				fmt.Println(info)
@@ -168,18 +168,18 @@ func (o OutputLog) Output (info interface{}) {
 			if l >= o.Level {
 				fmt.Println(info)
 			}
-			library.Log.Info(info)
+			Log.Info(info)
 		default:
 			if l >= o.Level {
 				fmt.Println(info)
 			}
-			library.Log.Info(info)
+			Log.Info(info)
 		}
 
 	case DebugLevel:
 		switch library.Config.Log.Debug {
 		case LOG_MODE_ONLY:
-			library.Log.Debug(info)
+			Log.Debug(info)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
 				fmt.Println(info)
@@ -188,18 +188,18 @@ func (o OutputLog) Output (info interface{}) {
 			if l >= o.Level {
 				fmt.Println(info)
 			}
-			library.Log.Debug(info)
+			Log.Debug(info)
 		default:
 			if l >= o.Level {
 				fmt.Println(info)
 			}
-			library.Log.Debug(info)
+			Log.Debug(info)
 		}
 
 	case TraceLevel:
 		switch library.Config.Log.Trace {
 		case LOG_MODE_ONLY:
-			library.Log.Trace(info)
+			Log.Trace(info)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
 				fmt.Println(info)
@@ -208,12 +208,12 @@ func (o OutputLog) Output (info interface{}) {
 			if l >= o.Level {
 				fmt.Println(info)
 			}
-			library.Log.Trace(info)
+			Log.Trace(info)
 		default:
 			if l >= o.Level {
 				fmt.Println(info)
 			}
-			library.Log.Trace(info)
+			Log.Trace(info)
 		}
 
 	}
@@ -233,7 +233,7 @@ func (this OutputLog) OutputAndReturnError (info interface{}) error {
 func (o OutputLog) OutputDebug (err error, msg interface{}) {
 	l, err := ParseLogLevel(library.Config.Log.Level)
 	if err != nil {
-		library.Log.Panic(MessageWithLineNum("Error in the log function!"))
+		Log.Panic(MessageWithLineNum("Error in the log function!"))
 		return
 	}
 
@@ -248,7 +248,7 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 	case PanicLevel:
 		switch library.Config.Log.Panic {
 		case LOG_MODE_ONLY:
-			library.Log.Panic(m)
+			Log.Panic(m)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
 				fmt.Println(m)
@@ -258,18 +258,18 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 			if l >= o.Level {
 				fmt.Println(m)
 			}
-			library.Log.Panic(m)
+			Log.Panic(m)
 		default:
 			if l >= o.Level {
 				fmt.Println(m)
 			}
-			library.Log.Panic(m)
+			Log.Panic(m)
 		}
 
 	case FatalLevel:
 		switch library.Config.Log.Fatal {
 		case LOG_MODE_ONLY:
-			library.Log.Fatal(m)
+			Log.Fatal(m)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
 				fmt.Println(m)
@@ -278,18 +278,18 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 			if l >= o.Level {
 				fmt.Println(m)
 			}
-			library.Log.Fatal(m)
+			Log.Fatal(m)
 		default:
 			if l >= o.Level {
 				fmt.Println(m)
 			}
-			library.Log.Fatal(m)
+			Log.Fatal(m)
 		}
 
 	case ErrorLevel:
 		switch library.Config.Log.Error {
 		case LOG_MODE_ONLY:
-			library.Log.Error(m)
+			Log.Error(m)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
 				fmt.Println(m)
@@ -298,18 +298,18 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 			if l >= o.Level {
 				fmt.Println(m)
 			}
-			library.Log.Error(m)
+			Log.Error(m)
 		default:
 			if l >= o.Level {
 				fmt.Println(m)
 			}
-			library.Log.Error(m)
+			Log.Error(m)
 		}
 
 	case WarnLevel:
 		switch library.Config.Log.Warning {
 		case LOG_MODE_ONLY:
-			library.Log.Warning(m)
+			Log.Warning(m)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
 				fmt.Println(m)
@@ -318,18 +318,18 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 			if l >= o.Level {
 				fmt.Println(m)
 			}
-			library.Log.Warning(m)
+			Log.Warning(m)
 		default:
 			if l >= o.Level {
 				fmt.Println(m)
 			}
-			library.Log.Warning(m)
+			Log.Warning(m)
 		}
 
 	case InfoLevel:
 		switch library.Config.Log.Info {
 		case LOG_MODE_ONLY:
-			library.Log.Info(m)
+			Log.Info(m)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
 				fmt.Println(m)
@@ -338,18 +338,18 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 			if l >= o.Level {
 				fmt.Println(m)
 			}
-			library.Log.Info(m)
+			Log.Info(m)
 		default:
 			if l >= o.Level {
 				fmt.Println(m)
 			}
-			library.Log.Info(m)
+			Log.Info(m)
 		}
 
 	case DebugLevel:
 		switch library.Config.Log.Debug {
 		case LOG_MODE_ONLY:
-			library.Log.Debug(m)
+			Log.Debug(m)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
 				fmt.Println(m)
@@ -358,18 +358,18 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 			if l >= o.Level {
 				fmt.Println(m)
 			}
-			library.Log.Debug(m)
+			Log.Debug(m)
 		default:
 			if l >= o.Level {
 				fmt.Println(m)
 			}
-			library.Log.Debug(m)
+			Log.Debug(m)
 		}
 
 	case TraceLevel:
 		switch library.Config.Log.Trace {
 		case LOG_MODE_ONLY:
-			library.Log.Trace(m)
+			Log.Trace(m)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
 				fmt.Println(m)
@@ -378,12 +378,12 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 			if l >= o.Level {
 				fmt.Println(m)
 			}
-			library.Log.Trace(m)
+			Log.Trace(m)
 		default:
 			if l >= o.Level {
 				fmt.Println(m)
 			}
-			library.Log.Trace(m)
+			Log.Trace(m)
 		}
 
 	}

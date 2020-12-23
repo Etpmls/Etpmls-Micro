@@ -50,10 +50,13 @@ func (this *Register) Init() {
 	default:
 	}
 
+	i := library.NewInit()
+	i.Start()
+	defer i.Close()
 
 	library.Init_Yaml()
 	library.Init_Logrus(library.Config.Log.Level)
-	library.Init_Redis(library.Config.App.Cache, library.Config.Cache.Address, library.Config.Cache.Password, library.Config.Cache.DB)
+	library.Init_Redis(library.Config.App.EnableCache, library.Config.Cache.Address, library.Config.Cache.Password, library.Config.Cache.DB)
 
 	// Consul Config
 	pkgConfig := consul.DefaultConfig()
@@ -61,7 +64,7 @@ func (this *Register) Init() {
 	pkgConfig.WaitTime = library.Config.App.CommunicationTimeout
 	var config = library.ConsulConfig{
 		Config: pkgConfig,
-		Enable: library.Config.App.ServiceDiscovery,
+		Enable: library.Config.App.EnableServiceDiscovery,
 		ConsulAddress:  library.Config.ServiceDiscovery.Address,
 		RpcId:          library.Config.ServiceDiscovery.Service.Rpc.Id,
 		RpcName:        library.Config.ServiceDiscovery.Service.Rpc.Name,
@@ -90,7 +93,7 @@ func (this *Register) Run()  {
 	// Set Custom Configuration
 	library.Init_CustomYaml(this.CustomConfiguration.Path, this.CustomConfiguration.DebugPath, this.CustomConfiguration.StructAddr)
 
-	if library.Config.App.Database {
+	if library.Config.App.EnableDatabase {
 		// Init Database
 		this.RunDatabase()
 		// Insert database initial data

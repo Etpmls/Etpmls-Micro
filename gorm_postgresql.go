@@ -16,7 +16,7 @@ const (
 )
 
 func (this *Register) RunDatabase() {
-	dsn := "host=" + library.Config.Database.Host + " user=" + library.Config.Database.User + " password=" + library.Config.Database.Password + " dbname=" + library.Config.Database.Name + " port=" + library.Config.Database.Port + " sslmode=disable TimeZone=" + library.Config.App.TimeZone
+	dsn := "host=" + library.Config.Database.Host + " user=" + library.Config.Database.User + " password=" + library.Config.Database.Password + " dbname=" + library.Config.Database.Name + " port=" + library.Config.Database.Port + " sslmode=disable TimeZone=" + library.Config.Database.TimeZone
 
 	//Connect Database
 	var err error

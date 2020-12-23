@@ -10,6 +10,7 @@ var Instance_Validator *Package_Validator.Validate
 // https://github.com/go-playground/validator/blob/master/_examples/simple/main.go
 func Init_Validator()  {
 	Instance_Validator = Package_Validator.New()
+	initLog.Println("[INFO]", "Successfully loaded Init_Validator.")
 }
 
 type validator struct {

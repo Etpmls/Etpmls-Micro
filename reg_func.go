@@ -15,8 +15,8 @@ import (
 )
 
 func defaultHandleExit() {
-	if em_library.Config.App.ServiceDiscovery {
-		err := em_library.ServiceDiscovery.CancelService()
+	if em_library.Config.App.EnableServiceDiscovery {
+		err := ServiceDiscovery.CancelService()
 		if err != nil {
 			LogError.Output("Cancel service failed! " + MessageWithLineNum(err.Error()))
 		}

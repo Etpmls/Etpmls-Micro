@@ -2,7 +2,6 @@ package em
 
 import (
 	"context"
-	em_library "github.com/Etpmls/Etpmls-Micro/library"
 	"google.golang.org/grpc"
 	"time"
 )
@@ -21,7 +20,7 @@ type cli struct {
 }
 
 func (this *cli) ConnectService(service_name string) (error) {
-	addr, err := em_library.ServiceDiscovery.GetServiceAddr(service_name, nil)
+	addr, err := ServiceDiscovery.GetServiceAddr(service_name, nil)
 	if err != nil {
 		LogError.Output(MessageWithLineNum(err.Error()))
 		return err
@@ -47,7 +46,7 @@ func (this *cli) Sync(run func() error, callback func(error) error) error {
 	Micro.Request.Rpc_SetValueToHeader(this.Context, this.Header)
 
 	defer this.Conn.Close()
-	return em_library.CircuitBreaker.Sync("default", run, callback)
+	return CircuitBreaker.Sync("default", run, callback)
 }
 
 func (this *cli) Async(run func() error, callback func(error) error) chan error {
@@ -60,7 +59,7 @@ func (this *cli) Async(run func() error, callback func(error) error) chan error 
 	Micro.Request.Rpc_SetValueToHeader(this.Context, this.Header)
 
 	defer this.Conn.Close()
-	return em_library.CircuitBreaker.Async("default", run, callback)
+	return CircuitBreaker.Async("default", run, callback)
 }
 
 

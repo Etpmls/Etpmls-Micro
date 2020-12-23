@@ -25,9 +25,9 @@ func Init_Logrus(logLevel string) {
 	level, err := Package_Logrus.ParseLevel(logLevel)
 	if err != nil {
 		level = Package_Logrus.WarnLevel
-		Instance_Logrus.Warning("Set Instance_Logrus Level Failed!")
+		initLog.Fatalln("[WARNING]", "Set Instance_Logrus Level Failed!", " Error:", err)
 	} else {
-		Instance_Logrus.Info("logrus initialized successfully.")
+		initLog.Println("[INFO]", "logrus initialized successfully.")
 	}
 	Instance_Logrus.Level = level
 }

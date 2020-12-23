@@ -54,12 +54,12 @@ func (this *defaultMiddleware) Auth() grpc.UnaryServerInterceptor {
 		// Get token from header
 		token, err:= Micro.Auth.Rpc_GetTokenFromHeader(ctx)
 		if err != nil || token == "" {
-			return nil, status.Error(codes.PermissionDenied, em_library.I18n.TranslateFromRequest(ctx, "ERROR_MESSAGE_PermissionDenied"))
+			return nil, status.Error(codes.PermissionDenied, I18n.TranslateFromRequest(ctx, "ERROR_MESSAGE_PermissionDenied"))
 		}
 
 		b, _ := Micro.Auth.VerifyToken(token)
 		if !b {
-			return nil, status.Error(codes.PermissionDenied, em_library.I18n.TranslateFromRequest(ctx, "ERROR_MESSAGE_PermissionDenied"))
+			return nil, status.Error(codes.PermissionDenied, I18n.TranslateFromRequest(ctx, "ERROR_MESSAGE_PermissionDenied"))
 		}
 
 		// Pass the token to the method

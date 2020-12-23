@@ -1,52 +1,49 @@
-package em_library
+package em
 
 import (
 	"context"
+	"github.com/Etpmls/Etpmls-Micro/library"
 	"time"
 )
 
 var (
-	JwtToken = Interface_Jwt(NewJwtGo(Config.App.Key))
-	I18n     = Interface_I18n(&Go_i18n{})
-	Cache    = Interface_Cache(NewRedis())
-	Log      = Interface_Log(NewLogrus())
-	Captcha  = Interface_Captcha(NewRecaptcha())
-	Validator  = Interface_Validator(NewValidator())
-	ServiceDiscovery = Interface_ServiceDiscovery(NewConsul())
-	CircuitBreaker = Interface_CircuitBreaker(NewHystrixGo())
+	JwtToken         = Interface_Jwt(em_library.NewJwtGo(em_library.Config.App.Key))
+	I18n             = Interface_I18n(&em_library.Go_i18n{})
+	Cache            = Interface_Cache(em_library.NewRedis())
+	Log              = Interface_Log(em_library.NewLogrus())
+	Captcha          = Interface_Captcha(em_library.NewRecaptcha())
+	Validator        = Interface_Validator(em_library.NewValidator())
+	ServiceDiscovery = Interface_ServiceDiscovery(em_library.NewConsul())
+	CircuitBreaker   = Interface_CircuitBreaker(em_library.NewHystrixGo())
 )
-
 
 // Jwt token interface
 // JWT 令牌接口
 type Interface_Jwt interface {
-	CreateToken(interface{}) (string,  error)
+	CreateToken(interface{}) (string, error)
 	ParseToken(string) (interface{}, error)
-	GetIdByToken(string) (uint, error)						// Get user ID
-	GetIssuerByToken(string) (issuer string, err error)		// Get Username
+	GetIdByToken(string) (uint, error)                  // Get user ID
+	GetIssuerByToken(string) (issuer string, err error) // Get Username
 }
-
 
 // i18n interface
 // i18n 接口
 type Interface_I18n interface {
-	TranslateString (str string, language string) string
-	TranslateFromRequest (ctx context.Context, str string) string
+	TranslateString(str string, language string) string
+	TranslateFromRequest(ctx context.Context, str string) string
 }
-
 
 // Cache interface
 // 缓存接口
 type Interface_Cache interface {
-	GetString (key string) (string, error)
-	SetString (key string, value string, time time.Duration)
-	DeleteString (list ...string)
-	GetHash (key string, field string) (string, error)
-	SetHash (key string, value map[string]string)
-	DeleteHash (key string, list ...string)
+	GetString(key string) (string, error)
+	SetString(key string, value string, time time.Duration)
+	DeleteString(list ...string)
+	GetHash(key string, field string) (string, error)
+	SetHash(key string, value map[string]string)
+	DeleteHash(key string, list ...string)
 	ClearAllCache()
 }
-
 
 // Instance_Logrus interface
 // 日志接口

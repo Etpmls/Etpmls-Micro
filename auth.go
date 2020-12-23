@@ -2,7 +2,6 @@ package em
 
 import (
 	"context"
-	em_library "github.com/Etpmls/Etpmls-Micro/library"
 )
 
 type auth struct {
@@ -13,7 +12,7 @@ type auth struct {
 // 验证token是否有效
 func (this *auth)VerifyToken(token string) (bool, error) {
 	// Parse token
-	_, err := em_library.JwtToken.ParseToken(token)
+	_, err := JwtToken.ParseToken(token)
 	if err != nil {
 		LogInfo.Output(MessageWithLineNum(err.Error()))
 		return false, err

@@ -25,7 +25,7 @@ func (this *recaptcha) Verify(secret string, response string) bool {
 
 	resp, err := c.PostForm("https://" + Config.Captcha.Host + "/recaptcha/api/siteverify", url.Values{"secret": []string{secret}, "response": []string{response}})
 	if err != nil {
-		Log.Error(err.Error())
+		Instance_Logrus.Error(err.Error())
 		return false
 	}
 	defer resp.Body.Close()
@@ -34,12 +34,14 @@ func (this *recaptcha) Verify(secret string, response string) bool {
 	var m = make(map[string]interface{})
 	err = json.Unmarshal(body, &m)
 	if err != nil {
-		Log.Error(err.Error())
+		Instance_Logrus.Error(err.Error())
 		return false
 	}
 	v, ok := m["success"]
 	if ok && v == true {
 		return true
 	}
+
+	Instance_Logrus.Warning("Recaptcha verification failed!")
 	return false
 }

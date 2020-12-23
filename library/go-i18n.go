@@ -22,7 +22,7 @@ func Init_GoI18n() {
 
 	list, err := filepath.Glob("./storage/language/*.toml")
 	if err != nil || len(list) < 1 {
-		Instance_Logrus.Error("Failed to load language pack!")
+		initLog.Fatalln("[ERROR]", "Failed to load language pack!", " Error:", err)
 		return
 	}
 
@@ -35,7 +35,7 @@ func Init_GoI18n() {
 
 	lang_list, err := filepath.Glob(filepath.Dir(filepath.Dir(fileStr)) + "/file/*.toml")
 	if err != nil || len(lang_list) < 1 {
-		Instance_Logrus.Fatal("Failed to load language pack!")
+		initLog.Fatalln("[ERROR]", "Failed to load language pack!", " Error:", err)
 		return
 	}
 
@@ -43,6 +43,7 @@ func Init_GoI18n() {
 		Instance_GoI18n.MustLoadMessageFile(v)
 	}
 
+	initLog.Println("[INFO]", "Successfully loaded Init_GoI18n.")
 	return
 }
 

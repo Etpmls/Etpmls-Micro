@@ -41,7 +41,7 @@ func Init_Consul(conf *ConsulConfig)  {
 	var err error
 	Instance_Consul, err = Package_Consul.NewClient(conf.Config)
 	if err != nil {
-		Instance_Logrus.Warning("Consul initialization failed.")
+		initLog.Fatalln("[WARNING]", "Consul initialization failed.", " Error:", err)
 	}
 
 	// Registration Service
@@ -50,10 +50,10 @@ func Init_Consul(conf *ConsulConfig)  {
 	var c = NewConsul()
 	err = c.RegistrationService()
 	if err != nil {
-		Instance_Logrus.Warning("Registration Consul Service failed. ", err)
+		initLog.Println("[WARNING]", "Registration Consul Service failed.", " Error:", err)
 		go c.automaticRetry()
 	} else {
-		Instance_Logrus.Info("Registration Consul Service successfully.")
+		initLog.Println("[INFO]", "Registration Consul Service successfully.")
 	}
 }
 
@@ -123,12 +123,12 @@ func (this *consul) RegistrationService() error {
 func (this *consul) CancelService() error {
 	err := Instance_Consul.Agent().ServiceDeregister(config.RpcId)
 	if err != nil {
-		Instance_Logrus.Error("Cancel Consul RPC service failed! Error:", err.Error())
+		initLog.Println("[ERROR]", "Cancel Consul RPC service failed!", " Error:", err)
 		return err
 	}
 	err = Instance_Consul.Agent().ServiceDeregister(config.HttpId)
 	if err != nil {
-		Instance_Logrus.Error("Cancel Consul HTTP service failed! Error:", err.Error())
+		initLog.Println("[ERROR]", "Cancel Consul HTTP service failed!", " Error:", err)
 		return err
 	}
 	return nil
@@ -141,7 +141,7 @@ func (this *consul) automaticRetry() {
 		time.Sleep(time.Second * 5)
 		err := this.RegistrationService()
 		if err == nil {
-			Instance_Logrus.Info("Service registered successfully!")
+			initLog.Println("[INFO]", "Service registered successfully!")
 			break
 		}
 	}
@@ -157,7 +157,7 @@ func (this *consul) GetServiceAddr(service_name string, options map[string]inter
 
 	// No record
 	if len(list) == 0 {
-		Instance_Logrus.Warning(service_name + " service not found.")
+		Instance_Logrus.Warning(service_name + " service not found.", " Error:", err)
 		return "", errors.New(service_name + " service not found.")
 	}
 
