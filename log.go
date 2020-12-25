@@ -68,7 +68,7 @@ type OutputLog struct {
 
 // No matter whether it is in Debug mode, it will output an message
 // 无论是否为Debug模式，都输出信息
-func (o OutputLog) Output (info interface{}) {
+func (o OutputLog) Output (info ...interface{}) {
 	l, err := ParseLogLevel(library.Config.Log.Level)
 	if err != nil {
 		Log.Panic(MessageWithLineNum("Error in the log function!"))
@@ -400,5 +400,19 @@ func (o OutputLog) AutoOutputDebug (msg interface{}, err error) {
 	}
 
 	o.OutputDebug(GenerateErrorWithMessage(v + "Error: ", err), msg)
+	return
+}
+
+// Output information with the number of file lines and include the caller path
+// 输出带文件行数的信息，并且包含调用者路径
+func (o OutputLog) OutputFullPath (info string) {
+	o.Output(MessageWithLineNum(""), info)
+	return
+}
+
+// Output information with file line number
+// 输出带文件行数的信息
+func (o OutputLog) OutputSimplePath (info string) {
+	o.Output(MessageWithLineNum(""), info)
 	return
 }
