@@ -79,152 +79,169 @@ func (o OutputLog) Output (info ...interface{}) {
 	case PanicLevel:
 		switch library.Config.Log.Panic {
 		case LOG_MODE_ONLY:
-			Log.Panic(info)
+			Log.Panic(info...)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
 		case LOG_CONSOLE_MODE:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
-			Log.Panic(info)
+			Log.Panic(info...)
 		default:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
-			Log.Panic(info)
+			Log.Panic(info...)
 		}
 
 	case FatalLevel:
 		switch library.Config.Log.Fatal {
 		case LOG_MODE_ONLY:
-			Log.Fatal(info)
+			Log.Fatal(info...)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
 		case LOG_CONSOLE_MODE:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
-			Log.Fatal(info)
+			Log.Fatal(info...)
 		default:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
-			Log.Fatal(info)
+			Log.Fatal(info...)
 		}
 
 	case ErrorLevel:
 		switch library.Config.Log.Error {
 		case LOG_MODE_ONLY:
-			Log.Error(info)
+			Log.Error(info...)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
 		case LOG_CONSOLE_MODE:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
-			Log.Error(info)
+			Log.Error(info...)
 		default:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
-			Log.Error(info)
+			Log.Error(info...)
 		}
 
 	case WarnLevel:
 		switch library.Config.Log.Warning {
 		case LOG_MODE_ONLY:
-			Log.Warning(info)
+			Log.Warning(info...)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
 		case LOG_CONSOLE_MODE:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
-			Log.Warning(info)
+			Log.Warning(info...)
 		default:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
-			Log.Warning(info)
+			Log.Warning(info...)
 		}
 
 	case InfoLevel:
 		switch library.Config.Log.Info {
 		case LOG_MODE_ONLY:
-			Log.Info(info)
+			Log.Info(info...)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
 		case LOG_CONSOLE_MODE:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
-			Log.Info(info)
+			Log.Info(info...)
 		default:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
-			Log.Info(info)
+			Log.Info(info...)
 		}
 
 	case DebugLevel:
 		switch library.Config.Log.Debug {
 		case LOG_MODE_ONLY:
-			Log.Debug(info)
+			Log.Debug(info...)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
 		case LOG_CONSOLE_MODE:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
-			Log.Debug(info)
+			Log.Debug(info...)
 		default:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
-			Log.Debug(info)
+			Log.Debug(info...)
 		}
 
 	case TraceLevel:
 		switch library.Config.Log.Trace {
 		case LOG_MODE_ONLY:
-			Log.Trace(info)
+			Log.Trace(info...)
 		case CONSOLE_MODE_ONLY:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
 		case LOG_CONSOLE_MODE:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
-			Log.Trace(info)
+			Log.Trace(info...)
 		default:
 			if l >= o.Level {
-				fmt.Println(info)
+				fmt.Println(info...)
 			}
-			Log.Trace(info)
+			Log.Trace(info...)
 		}
 
 	}
 }
 
+// Output information with the number of file lines and include the caller path
+// 输出带文件行数的信息，并且包含调用者路径
+func (o OutputLog) OutputFullPath (info ...interface{}) {
+	var p = []interface{}{MessageWithLineNum("")}
+	p = append(p, info...)
+	o.Output(p...)
+	return
+}
+
+// Output information with file line number
+// 输出带文件行数的信息
+func (o OutputLog) OutputSimplePath (info ...interface{}) {
+	var p = []interface{}{MessageWithLineNum_OneRecord("")}
+	p = append(p, info...)
+	o.Output(p...)
+	return
+}
 
 // No matter whether it is in Debug mode, it will output an message, and return Error
 // 无论是否为Debug模式，都输出信息，并且返回错误
-func (this OutputLog) OutputAndReturnError (info interface{}) error {
-	this.Output(info)
-	return errors.New(fmt.Sprintf("%v", info))
+func (this OutputLog) OutputAndReturnError (info ...interface{}) error {
+	this.Output(info...)
+	return errors.New(fmt.Sprintf("%v", info...))
 }
 
 
@@ -403,16 +420,3 @@ func (o OutputLog) AutoOutputDebug (msg interface{}, err error) {
 	return
 }
 
-// Output information with the number of file lines and include the caller path
-// 输出带文件行数的信息，并且包含调用者路径
-func (o OutputLog) OutputFullPath (info string) {
-	o.Output(MessageWithLineNum(""), info)
-	return
-}
-
-// Output information with file line number
-// 输出带文件行数的信息
-func (o OutputLog) OutputSimplePath (info string) {
-	o.Output(MessageWithLineNum(""), info)
-	return
-}
