@@ -410,3 +410,220 @@ INIT_DATABASE="FALSE"
 > [YOUR_SERVICE_NAME]
 
 替换为你的服务名
+
+## 定义Protobuf
+
+首先我们要定义protobuf，本文以`src/application/protobuf/proto` 路径为演示。
+
+**1. 拷贝依赖文件**
+
+把EM项目下的`Etpmls-Micro/protobuf/proto/Etpmls` 和 `Etpmls-Micro/protobuf/proto/google` 文件拷贝到当前项目下`src/application/protobuf/proto`
+
+**2.定义Proto文件**
+
+**3.编译Proto**
+
+复制`vendor/github.com/Etpmls/Etpmls-Micro/file/cli_generate_proto.bat` 到项目根目录下，并命令行执行该文件
+
+## 创建服务
+
+**创建服务类**
+
+以下为创建User服务类示例
+
+> src/application/service/user.go
+
+```go
+package service
+
+type ServiceUser struct {
+	protobuf.UnimplementedUserServer
+}
+```
+
+**创建RPC服务**
+
+以下为创建User RPC服务示例
+
+> src/register/serivce.go
+
+```go
+package register
+
+// Register Rpc Service
+func RegisterRpcService(s *grpc.Server)  {
+	protobuf.RegisterUserServer(s, &service.ServiceUser{})
+	return
+}
+```
+
+**创建HTTP服务**
+
+以下为注册User HTTP服务示例
+
+> src/register/serivce.go
+
+```go
+// Register Http Service
+func RegisterHttpService(ctx context.Context, mux *runtime.ServeMux, grpcServerEndpoint *string, opts []grpc.DialOption) error {
+	err := protobuf.RegisterUserHandlerFromEndpoint(ctx, mux,  *grpcServerEndpoint, opts)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+```
+
+## 创建路由
+
+以下为注册服务路由示例
+
+```go
+package register
+
+import (
+	em "github.com/Etpmls/Etpmls-Micro"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"net/http"
+)
+
+// Register Route
+func RegisterRoute(mux *runtime.ServeMux)  {
+	mux.HandlePath("GET", em.Micro.Config.ServiceDiscovery.Service.CheckUrl, func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+		w.Write([]byte("hello"))
+	})
+}
+```
+
+## 注册
+
+当你创建好服务、路由等，你需要将这些注册到EM中。
+
+> main.go
+
+```go
+package main
+
+import (
+	"github.com/Etpmls/EM-Auth/src/register"
+	"github.com/Etpmls/Etpmls-Micro"
+)
+
+func main()  {
+	var reg = em.Register{
+		GrpcServiceFunc:           register.RegisterRpcService,
+		HttpServiceFunc:           register.RegisterHttpService,
+		RouteFunc:                 register.RegisterRoute,
+	}
+	reg.Init()
+	reg.Run()
+}
+```
+
+## 编写业务
+
+> src/application/service/user.go
+
+```go
+// Get all user
+// 获取全部用户
+func (this *ServiceUser) GetAll(ctx context.Context, request *em_protobuf.Pagination) (*em_protobuf.Response, error) {
+    
+    ......
+    
+    if err != nil {
+        return em.ErrorRpc(codes.InvalidArgument, em.ERROR_Code, em.I18n.TranslateFromRequest(ctx, "ERROR_Get"), nil, err)
+    }
+    
+	m := map[string]interface{}{"data": "this is data"}
+
+	return em.SuccessRpc(em.SUCCESS_Code, em.I18n.TranslateFromRequest(ctx, "SUCCESS_Get"), m)
+}
+```
+
+## 例子
+
+### 验证器
+
+```go
+// Create user
+// 创建用户
+type validate_UserCreate struct {
+	Username string `json:"username" validate:"required,max=255"`
+	Password string `json:"password" validate:"required,max=255"`
+	Roles []model.Role `json:"roles" validate:"required"`
+}
+func (this *ServiceUser) Create(ctx context.Context, request *protobuf.UserCreate) (*em_protobuf.Response, error) {
+    
+	// Validate
+	{
+		var vd validate_UserCreate
+		err := em.Validator.Validate(request, &vd)
+		if err != nil {
+			em.LogWarn.Output(em.MessageWithLineNum(err.Error()))
+			return em.ErrorRpc(codes.InvalidArgument, em.ERROR_Code, em.I18n.TranslateFromRequest(ctx, "ERROR_Validate"), nil, err)
+		}
+	}
+    
+    // Create User
+    ...
+    ...
+}
+```
+
+### 创建数据库表
+
+在Register中定义`DatabaseMigrate` ，并填入你需要创建的数据库结构体的地址。
+
+> main.go
+
+```go
+	var reg = em.Register{
+        ...
+		DatabaseMigrate:		[]interface{}{
+			&database.User{},
+			&database.Role{},
+			&database.Permission{},
+		},
+	}
+	reg.Init()
+	reg.Run()
+```
+
+> src/application/database/field_postgresql.go
+
+```go
+package database
+
+import (
+	"gorm.io/gorm"
+)
+
+type User struct {
+	gorm.Model
+	Username string `gorm:"unique;not null"`
+	Password string `gorm:"not null"`
+	Avatar string	`gorm:"-"`
+	Roles []Role `gorm:"many2many:role_users;"`
+}
+
+type Role struct {
+	gorm.Model
+	Name string
+	Remark string
+	Users []User `gorm:"many2many:role_users;"`
+	Permissions []Permission `gorm:"many2many:role_permissions;"`
+}
+
+type Permission struct {
+	gorm.Model
+	Name string
+	Auth int
+	Method string
+	Path	string
+	Remark string
+	Roles []Role `gorm:"many2many:role_permissions;"`
+}
+```
+

@@ -70,13 +70,25 @@ func GetUrlPath(urlStr string, trim bool) string {
 	}
 }
 
-
+// Deprecated: Use ChangeTypeV2
 func ChangeType(in interface{}, out interface{}) (error) {
 	b, err := json.Marshal(in)
 	if err != nil {
 		return err
 	}
 	err = json.Unmarshal(b, &out)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ChangeTypeV2(in interface{}, out interface{}) (error) {
+	b, err := json.Marshal(in)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(b, out)
 	if err != nil {
 		return err
 	}
@@ -122,7 +134,20 @@ func MessageWithLineNum_OneRecord(msg string) string {
 	}
 	return msg
 }
-
+// Message(or Error) with line number,Specify call level
+// 消息(或错误)带行号，指定调用层级
+func MessageWithLineNum_Advanced(msg string, level int, num int) string {
+	var list []string
+	for i := level + 1; i < level + 1 + num; i++ {
+		_, file, line, ok := runtime.Caller(i)
+		if ok {
+			list = append(list, file+":"+strconv.Itoa(line))
+		} else {
+			break
+		}
+	}
+	return strings.Join(list, " => ") + " => Message: " + msg
+}
 
 // Generate errors with both custom messages and error messages
 // 生成同时带有自定义信息和错误信息的错误

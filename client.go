@@ -2,24 +2,23 @@ package em
 
 import (
 	"context"
+	"errors"
+	em_protobuf "github.com/Etpmls/Etpmls-Micro/protobuf"
 	"google.golang.org/grpc"
 	"time"
 )
 
 type client struct {
-}
-
-func (this *client) NewClient() *cli {
-	return &cli{}
-}
-
-type cli struct {
 	Conn *grpc.ClientConn
 	Context *context.Context
 	Header map[string]string
 }
 
-func (this *cli) ConnectService(service_name string) (error) {
+func (this *client) NewClient() *client {
+	return &client{}
+}
+
+func (this *client) ConnectService(service_name string) (error) {
 	addr, err := ServiceDiscovery.GetServiceAddr(service_name, nil)
 	if err != nil {
 		LogError.Output(MessageWithLineNum_OneRecord(err.Error()))
@@ -36,7 +35,7 @@ func (this *cli) ConnectService(service_name string) (error) {
 	return nil
 }
 
-func (this *cli) Sync(run func() error, callback func(error) error) error {
+func (this *client) Sync(run func() error, callback func(error) error) error {
 	if this.Context == nil {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
@@ -49,7 +48,7 @@ func (this *cli) Sync(run func() error, callback func(error) error) error {
 	return CircuitBreaker.Sync("default", run, callback)
 }
 
-func (this *cli) Async(run func() error, callback func(error) error) chan error {
+func (this *client) Async(run func() error, callback func(error) error) chan error {
 	if this.Context == nil {
 		var cancel context.CancelFunc
 		*this.Context, cancel = context.WithTimeout(context.Background(), time.Second)
@@ -62,47 +61,64 @@ func (this *cli) Async(run func() error, callback func(error) error) chan error 
 	return CircuitBreaker.Async("default", run, callback)
 }
 
-
-
-
-/*
-func (this *cli) AuthCheck(authServiceName string, currentServiceName string, userId uint) (bool) {
-	cl := NewClient()
-	err := cl.Do("common", func() error {
-
-		// Connect Service
-		conn, err := cl.ConnectService(authServiceName)
-		if err != nil {
-			return err
-		}
-		defer conn.Close()
-		c := em_protobuf.NewAuthClient(conn)
-
-		// Contact the server and print out its response.
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		defer cancel()
-
-		r, err := c.Check(ctx, &em_protobuf.AuthCheck{
-			Service:       currentServiceName,
-			UserId:        uint32(userId),
-		})
-		if err != nil {
-			LogError.Output(utils.MessageWithLineNum(err.Error()))
-			return err
-		}
-
-		if r.GetSuccess() == true {
-			return nil
-		} else {
-			LogInfo.Output(utils.MessageWithLineNum("Check failed!"))
-			return errors.New("Check failed!")
-		}
-
-	}, nil)
-	if err != nil {
-		return false
+func (this *client) ConnectServiceWithToken(service_name string, ctx *context.Context) ( error) {
+	if ctx == nil {
+		return errors.New("*context.Context is nil")
 	}
 
-	return true
+	// 1.Connect Service
+	err := this.ConnectService(Micro.Config.ServiceDiscovery.Service.Prefix + service_name)
+	if err != nil {
+		return err
+	}
+
+	// 2. Set Header
+	// Get token By Request
+	this.Context = ctx
+	token, err := Micro.Auth.GetTokenFromCtx(*ctx)
+	if err != nil {
+		return err
+	}
+	this.Header = map[string]string{"token": token}
+
+	return nil
 }
-*/
+
+func (this *client) IsSuccess(r *em_protobuf.Response) error {
+	if r.GetStatus() == SUCCESS_Status {
+		return nil
+	} else {
+		LogWarn.Output(MessageWithLineNum_Advanced("Request failed!", 1, 20))
+		return errors.New("Request failed!")
+	}
+}
+
+// Deprecated: Use Sync_SimpleV2
+func (this *client) Sync_Simple(run func() (*em_protobuf.Response, error), callback func(error) error) error {
+	return this.Sync(func() error {
+		r, err := run()
+		if err != nil {
+			LogWarn.OutputSimplePath("Run failed!", err)
+			return err
+		}
+		return Micro.Client.IsSuccess(r)
+	}, callback)
+}
+
+func (this *client) Sync_SimpleV2(run func() (*em_protobuf.Response, error), callback func(error) error) ([]byte, error) {
+	var b []byte
+
+	err := this.Sync(func() error {
+		r, err := run()
+		if err != nil {
+			LogWarn.OutputSimplePath("Run failed!", err)
+			return err
+		}
+
+		b = []byte(r.GetData())
+
+		return Micro.Client.IsSuccess(r)
+	}, callback)
+
+	return b, err
+}

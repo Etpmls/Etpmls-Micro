@@ -222,7 +222,7 @@ func (o OutputLog) Output (info ...interface{}) {
 // Output information with the number of file lines and include the caller path
 // 输出带文件行数的信息，并且包含调用者路径
 func (o OutputLog) OutputFullPath (info ...interface{}) {
-	var p = []interface{}{MessageWithLineNum("")}
+	var p = []interface{}{MessageWithLineNum_Advanced("", 1, 20)}
 	p = append(p, info...)
 	o.Output(p...)
 	return
@@ -231,7 +231,7 @@ func (o OutputLog) OutputFullPath (info ...interface{}) {
 // Output information with file line number
 // 输出带文件行数的信息
 func (o OutputLog) OutputSimplePath (info ...interface{}) {
-	var p = []interface{}{MessageWithLineNum_OneRecord("")}
+	var p = []interface{}{MessageWithLineNum_Advanced("", 1, 1)}
 	p = append(p, info...)
 	o.Output(p...)
 	return
