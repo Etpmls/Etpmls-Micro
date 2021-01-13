@@ -19,6 +19,9 @@ func (this *client) NewClient() *client {
 }
 
 func (this *client) ConnectService(service_name string) (error) {
+	if ServiceDiscovery == nil {
+		LogError.OutputSimplePath("ServiceDiscovery is not enabled!")
+	}
 	addr, err := ServiceDiscovery.GetServiceAddr(service_name, nil)
 	if err != nil {
 		LogError.Output(MessageWithLineNum_OneRecord(err.Error()))
@@ -36,6 +39,9 @@ func (this *client) ConnectService(service_name string) (error) {
 }
 
 func (this *client) Sync(run func() error, callback func(error) error) error {
+	if CircuitBreaker == nil {
+		LogError.OutputSimplePath("CircuitBreaker is not enabled!")
+	}
 	if this.Context == nil {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
@@ -49,6 +55,9 @@ func (this *client) Sync(run func() error, callback func(error) error) error {
 }
 
 func (this *client) Async(run func() error, callback func(error) error) chan error {
+	if CircuitBreaker == nil {
+		LogError.OutputSimplePath("CircuitBreaker is not enabled!")
+	}
 	if this.Context == nil {
 		var cancel context.CancelFunc
 		*this.Context, cancel = context.WithTimeout(context.Background(), time.Second)
@@ -67,7 +76,7 @@ func (this *client) ConnectServiceWithToken(service_name string, ctx *context.Co
 	}
 
 	// 1.Connect Service
-	err := this.ConnectService(Micro.Config.ServiceDiscovery.Service.Prefix + service_name)
+	err := this.ConnectService(service_name)
 	if err != nil {
 		return err
 	}

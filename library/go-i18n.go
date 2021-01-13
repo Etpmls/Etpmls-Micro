@@ -2,10 +2,9 @@ package em_library
 
 import (
 	"context"
-	"github.com/BurntSushi/toml"
+	"encoding/json"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
-	"path/filepath"
 )
 
 var (
@@ -15,13 +14,13 @@ var (
 // Initialization
 // 初始化
 // https://github.com/nicksnyder/go-i18n/tree/master/v2/example
-func Init_GoI18n() {
+/*func Init_GoI18n() {
 	Instance_GoI18n = i18n.NewBundle(language.English)
 	Instance_GoI18n.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 
 	list, err := filepath.Glob("./storage/language/*.toml")
 	if err != nil || len(list) < 1 {
-		initLog.Fatalln("[ERROR]", "Failed to load language pack!", " Error:", err)
+		InitLog.Fatalln("[ERROR]", "Failed to load language pack!", " Error:", err)
 		return
 	}
 
@@ -29,7 +28,18 @@ func Init_GoI18n() {
 		Instance_GoI18n.MustLoadMessageFile(v)
 	}
 
-	initLog.Println("[INFO]", "Successfully loaded Init_GoI18n.")
+	InitLog.Println("[INFO]", "Successfully loaded Init_GoI18n.")
+	return
+}*/
+func Init_GoI18n(m map[string]string) {
+	Instance_GoI18n = i18n.NewBundle(language.English)
+	Instance_GoI18n.RegisterUnmarshalFunc("json", json.Unmarshal)
+
+	for k, v := range m {
+		Instance_GoI18n.MustParseMessageFileBytes([]byte(v), k)
+	}
+	InitLog.Println("[INFO]", "Successfully loaded Init_GoI18n.")
+
 	return
 }
 

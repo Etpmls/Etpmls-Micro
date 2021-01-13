@@ -3,7 +3,6 @@ package em
 import (
 	"context"
 	"flag"
-	em_library "github.com/Etpmls/Etpmls-Micro/library"
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 	"net"
@@ -11,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	library "github.com/Etpmls/Etpmls-Micro/library"
 )
 
 
@@ -19,7 +19,13 @@ import (
 */
 // https://github.com/grpc/grpc-go/blob/15a78f19307d5faf10cfdd9d4e664c65a387cbd1/examples/helloworld/greeter_server/main.go#L46
 func (this *Register) runGrpcServer()  {
-	lis, err := net.Listen("tcp", ":" + em_library.Config.App.RpcPort)
+	k, err := Kv.ReadKey(MakeServiceConfField(library.Config.Service.RpcId, KvServiceRpcPort))
+	if err != nil {
+		LogInfo.OutputSimplePath(err)
+		panic(err)
+	}
+
+	lis, err := net.Listen("tcp", ":" + k)
 	if err != nil {
 		LogFatal.Output("failed to listen: " + err.Error())
 	}
@@ -39,11 +45,22 @@ func (this *Register) runGrpcServer()  {
 	[HTTP]
 */
 func (this *Register) runHttpServer()  {
+	rp, err := Kv.ReadKey(MakeServiceConfField(library.Config.Service.RpcId, KvServiceRpcPort))
+	if err != nil {
+		LogInfo.OutputSimplePath(err)
+		panic(err)
+	}
+	hp, err := Kv.ReadKey(MakeServiceConfField(library.Config.Service.RpcId, KvServiceHttpPort))
+	if err != nil {
+		LogInfo.OutputSimplePath(err)
+		panic(err)
+	}
+
 	// https://github.com/grpc-ecosystem/grpc-gateway#usage
 	var (
 		// command-line options:
 		// gRPC server endpoint
-		grpcServerEndpoint = flag.String("grpc-server-endpoint",  "localhost:" + em_library.Config.App.RpcPort, "gRPC server endpoint")
+		grpcServerEndpoint = flag.String("grpc-server-endpoint",  "localhost:" + rp, "gRPC server endpoint")
 	)
 
 	flag.Parse()
@@ -58,7 +75,7 @@ func (this *Register) runHttpServer()  {
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 
 	// err := gw.RegisterYourServiceHandlerFromEndpoint(ctx, mux,  *grpcServerEndpoint, opts)
-	err := this.HttpServiceFunc(ctx, mux, grpcServerEndpoint, opts)
+	err = this.HttpServiceFunc(ctx, mux, grpcServerEndpoint, opts)
 	if err != nil {
 		glog.Fatal(err)
 	}
@@ -72,7 +89,7 @@ func (this *Register) runHttpServer()  {
 	handler := DefaultMiddleware().SetCors(mux, options)
 
 	// Start HTTP server (and proxy calls to gRPC server endpoint)
-	err = http.ListenAndServe(":" + em_library.Config.App.HttpPort, handler)
+	err = http.ListenAndServe(":" + hp, handler)
 	if err != nil {
 		glog.Fatal(err)
 	}

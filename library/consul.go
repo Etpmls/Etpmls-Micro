@@ -2,46 +2,45 @@ package em_library
 
 import (
 	"errors"
-	Package_Consul "github.com/hashicorp/consul/api"
+	"github.com/hashicorp/consul/api"
 	"math/rand"
 	"net"
 	"strconv"
 	"time"
 )
 
-type ConsulConfig struct {
-	Config *Package_Consul.Config
-	Enable bool
-	ConsulAddress string
-	RpcId string
-	RpcName string
-	RpcPort string
-	RpcTag []string
-	HttpId string
+type ServiceConfig struct {
+	Config   *api.Config
+	RpcId    string
+	RpcName  string
+	RpcPort  string
+	RpcTag   []string
+	HttpId   string
 	HttpName string
 	HttpPort string
-	HttpTag []string
-	Prefix        string
-	ServiceAddress       string
+	HttpTag  []string
+	Address  string
+	/*
+		Health check
+	*/
 	CheckInterval string
 	CheckUrl      string
 }
 
-var config *ConsulConfig
+var config *ServiceConfig
 
-func Init_Consul(conf *ConsulConfig)  {
-	//	If the service discovery is not turned on, skip consul initialization
-	//	如果没有开启服务发现则跳过consul初始化
-	if !conf.Enable {
+func Init_Consul(conf *ServiceConfig)  {
+	if conf.Config == nil {
+		InitLog.Println("[ERROR]", "Consul is not configured!")
 		return
 	}
 
 	// Establish connection
 	// 建立连接
 	var err error
-	Instance_Consul, err = Package_Consul.NewClient(conf.Config)
+	Instance_Consul, err = api.NewClient(conf.Config)
 	if err != nil {
-		initLog.Fatalln("[WARNING]", "Consul initialization failed.", " Error:", err)
+		InitLog.Fatalln("[WARNING]", "Consul initialization failed.", " Error:", err)
 	}
 
 	// Registration Service
@@ -50,16 +49,30 @@ func Init_Consul(conf *ConsulConfig)  {
 	var c = NewConsul()
 	err = c.RegistrationService()
 	if err != nil {
-		initLog.Println("[WARNING]", "Registration Consul Service failed.", " Error:", err)
+		InitLog.Println("[WARNING]", "Registration Consul Service failed.", " Error:", err)
 		go c.automaticRetry()
 	} else {
-		initLog.Println("[INFO]", "Registration Consul Service successfully.")
+		InitLog.Println("[INFO]", "Registration Consul Service successfully.")
 	}
 }
 
 
+func InitConsulKv(c *api.Config)  {
+	// Establish connection
+	// 建立连接
+	cl, err := api.NewClient(c)
+	if err != nil {
+		InitLog.Fatalln("[WARNING]", "Consul initialization failed.", " Error:", err)
+	}
+
+	// Registration KV
+	kv = cl.KV()
+	return
+}
+
 var (
-	Instance_Consul *Package_Consul.Client
+	Instance_Consul *api.Client
+	kv *api.KV
 )
 
 type consul struct {}
@@ -82,26 +95,26 @@ func (this *consul) RegistrationService() error {
 	}
 
 	// Service Check
-	Check := Package_Consul.AgentServiceCheck{
+	Check := api.AgentServiceCheck{
 		Interval: config.CheckInterval,
-		HTTP:     "http://" + config.ServiceAddress + ":" + config.HttpPort + config.CheckUrl,
+		HTTP:     "http://" + config.Address + ":" + config.HttpPort + config.CheckUrl,
 	}
 
 	// Configuration service
-	conf := Package_Consul.AgentServiceRegistration{
-		Address:   config.ServiceAddress,
+	conf := api.AgentServiceRegistration{
+		Address:   config.Address,
 		Check: &Check,
 	}
 
 	rpcConf := conf
 	rpcConf.ID = config.RpcId
-	rpcConf.Name = config.Prefix + config.RpcName
+	rpcConf.Name = config.RpcName
 	rpcConf.Tags = config.RpcTag
 	rpcConf.Port = rpcPort
 
 	httpConf := conf
 	httpConf.ID = config.HttpId
-	httpConf.Name = config.Prefix + config.HttpName
+	httpConf.Name = config.HttpName
 	httpConf.Tags = config.HttpTag
 	httpConf.Port = httpPort
 
@@ -123,12 +136,12 @@ func (this *consul) RegistrationService() error {
 func (this *consul) CancelService() error {
 	err := Instance_Consul.Agent().ServiceDeregister(config.RpcId)
 	if err != nil {
-		initLog.Println("[ERROR]", "Cancel Consul RPC service failed!", " Error:", err)
+		InitLog.Println("[ERROR]", "Cancel Consul RPC service failed!", " Error:", err)
 		return err
 	}
 	err = Instance_Consul.Agent().ServiceDeregister(config.HttpId)
 	if err != nil {
-		initLog.Println("[ERROR]", "Cancel Consul HTTP service failed!", " Error:", err)
+		InitLog.Println("[ERROR]", "Cancel Consul HTTP service failed!", " Error:", err)
 		return err
 	}
 	return nil
@@ -141,7 +154,7 @@ func (this *consul) automaticRetry() {
 		time.Sleep(time.Second * 5)
 		err := this.RegistrationService()
 		if err == nil {
-			initLog.Println("[INFO]", "Service registered successfully!")
+			InitLog.Println("[INFO]", "Service registered successfully!")
 			break
 		}
 	}
@@ -150,7 +163,7 @@ func (this *consul) automaticRetry() {
 // Get service address
 // 获取服务地址
 func (this *consul) GetServiceAddr(service_name string, options map[string]interface{}) (string, error) {
-	list, _, err := Instance_Consul.Health().Service(service_name, "",true, &Package_Consul.QueryOptions{})
+	list, _, err := Instance_Consul.Health().Service(service_name, "",true, &api.QueryOptions{})
 	if err != nil {
 		return "", err
 	}
@@ -166,4 +179,47 @@ func (this *consul) GetServiceAddr(service_name string, options map[string]inter
 
 	addr := net.JoinHostPort(list[index].Service.Address, strconv.Itoa(list[index].Service.Port))
 	return addr, nil
+}
+
+// Read Key
+// 读取Key
+func (this *consul) ReadKey(key string) (string, error) {
+	pair, _, err := kv.Get(key, nil)
+	if err != nil {
+		return "", err
+	}
+	return string(pair.Value), nil
+}
+
+// Update if there is a key, otherwise create
+// 如果存在key则更新，否则创建
+func (this *consul) CrateOrUpdateKey(key, value string) error {
+	p := &api.KVPair{Key: key, Value:[]byte(value)}
+	_, err := kv.Put(p, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Delete key
+// 删除Key
+func (this *consul) DeleteKey(key string) error {
+	_, err := kv.Delete(key, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (this *consul) List(prefix string) (map[string]string, error) {
+	pairs, _, err := kv.List("test/", nil)
+	if err != nil {
+		return nil, err
+	}
+	m := make(map[string]string)
+	for _, v := range pairs {
+		m[v.Key] = string(v.Value)
+	}
+	return m, nil
 }

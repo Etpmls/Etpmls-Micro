@@ -7,14 +7,17 @@ import (
 )
 
 var (
-	JwtToken         = Interface_Jwt(em_library.NewJwtGo())
-	I18n             = Interface_I18n(em_library.NewGoI18n())
-	Cache            = Interface_Cache(em_library.NewRedis())
+	/* Must run */
+	Kv               = Interface_KV(em_library.NewConsul())
 	Log              = Interface_Log(em_library.NewLogrus())
-	Captcha          = Interface_Captcha(em_library.NewRecaptcha())
+	JwtToken         = Interface_Jwt(em_library.NewJwtGo())
+	/* Optional */
+	I18n             = Interface_I18n(em_library.NewGoI18n())
 	Validator        = Interface_Validator(em_library.NewValidator())
-	ServiceDiscovery = Interface_ServiceDiscovery(em_library.NewConsul())
 	CircuitBreaker   = Interface_CircuitBreaker(em_library.NewHystrixGo())
+	Cache            = Interface_Cache(em_library.NewRedis())
+	ServiceDiscovery = Interface_ServiceDiscovery(em_library.NewConsul())
+	Captcha          = Interface_Captcha(em_library.NewRecaptcha())
 )
 
 // Jwt token interface
@@ -75,7 +78,15 @@ type Interface_ServiceDiscovery interface {
 	CancelService() error
 }
 
+type Interface_KV interface {
+	ReadKey(key string) (string, error)
+	CrateOrUpdateKey(key, value string) error
+	DeleteKey(key string) error
+	List(prefix string) (map[string]string, error)
+}
+
 type Interface_CircuitBreaker interface {
 	Sync(name string, run func() error, fallBack func(error) error) error
 	Async(name string, run func() error, fallBack func(error) error) chan error
 }
+

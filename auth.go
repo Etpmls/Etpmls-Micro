@@ -2,7 +2,6 @@ package em
 
 import (
 	"context"
-	em_library "github.com/Etpmls/Etpmls-Micro/library"
 	"github.com/dgrijalva/jwt-go"
 	"strconv"
 	"time"
@@ -15,8 +14,14 @@ type auth struct {
 // Verify that the token is valid
 // 验证token是否有效
 func (this *auth) VerifyToken(token string) (bool, error) {
+	k, err := Kv.ReadKey(KvAppKey)
+	if err != nil {
+		LogInfo.OutputSimplePath(err)
+		return false ,err
+	}
+
 	// Parse token
-	_, err := JwtToken.ParseToken(token, em_library.Config.App.Key)
+	_, err = JwtToken.ParseToken(token, k)
 	if err != nil {
 		LogInfo.Output(MessageWithLineNum(err.Error()))
 		return false, err
@@ -28,25 +33,55 @@ func (this *auth) VerifyToken(token string) (bool, error) {
 // Parse the token
 // 解析token
 func (this *auth) ParseToken(tokenString string) (interface{}, error) {
-	return JwtToken.ParseToken(tokenString, em_library.Config.App.Key)
+	k, err := Kv.ReadKey(KvAppKey)
+	if err != nil {
+		LogInfo.OutputSimplePath(err)
+		return nil ,err
+	}
+
+	return JwtToken.ParseToken(tokenString, k)
 }
 
 // Create a general token
 // 创建通用token
 func (this *auth) CreateGeneralToken(userId int, username string) (string, error) {
+	m, err := Kv.List(KvApp)
+	if err != nil {
+		LogInfo.OutputSimplePath(err)
+		return "" ,err
+	}
+
+	d, err := time.ParseDuration(m[KvAppTokenExpirationTime])
+	if err != nil {
+		LogInfo.OutputSimplePath(err)
+		d = time.Hour * 12
+	}
+
 	return JwtToken.CreateToken(&jwt.StandardClaims{
 		Id: strconv.Itoa(userId),                                                          // 用户ID
-		ExpiresAt: time.Now().Add(time.Second * em_library.Config.App.TokenExpirationTime).Unix(), // 过期时间 - 12个小时
+		ExpiresAt: time.Now().Add(time.Second * d).Unix(), // 过期时间 - 12个小时
 		Issuer:    username,                                                                    // 发行者
-	}, em_library.Config.App.Key)
+	}, m[KvAppKey])
 }
 
 func (this *auth) GetIdByToken(token string) (int, error) {
-	return JwtToken.GetIdByToken(token, em_library.Config.App.Key)
+	k, err := Kv.ReadKey(KvAppKey)
+	if err != nil {
+		LogInfo.OutputSimplePath(err)
+		return 0 ,err
+	}
+
+	return JwtToken.GetIdByToken(token, k)
 }
 
 func (this *auth) GetIssuerByToken(token string) (string, error) {
-	return JwtToken.GetIssuerByToken(token, em_library.Config.App.Key)
+	k, err := Kv.ReadKey(KvAppKey)
+	if err != nil {
+		LogInfo.OutputSimplePath(err)
+		return "" ,err
+	}
+
+	return JwtToken.GetIssuerByToken(token, k)
 }
 
 // Get token from ctx
@@ -62,36 +97,3 @@ func (this *auth) Rpc_GetTokenFromHeader(ctx context.Context) (string, error) {
 	var request request
 	return request.Rpc_GetValueFromHeader(ctx, "token")
 }
-
-/*
-
-// Verify that the token has access permissions
-// 验证token是否具有访问权限
-func (this *auth)VerifyPermissions(token string, fullMethodName string) (error) {
-	// Get Claims
-	// 获取Claims
-	tmp, err := em_library.JwtToken.ParseToken(token)
-	tk, ok := tmp.(*jwt.Token)
-	if !ok || err != nil {
-		LogInfo.Output(em_utils.MessageWithLineNum("Get Claims failed!" + err.Error()))
-		return err
-	}
-
-	// Determine whether the role has the corresponding permissions
-	// 判断所属角色是否有相应的权限
-	if claims,ok := tk.Claims.(jwt.MapClaims); ok && tk.Valid {
-		if userId, ok := claims["jti"].(string); ok {
-			id, err := strconv.Atoi(userId)
-			if err == nil {
-				b := NewClient().AuthCheck(EA.AuthServiceName, fullMethodName, uint(id))
-				if b {
-					return nil
-				}
-			} else {
-				LogInfo.Output(em_utils.MessageWithLineNum(err.Error()))
-			}
-		}
-	}
-
-	return errors.New("PermissionDenied")
-}*/

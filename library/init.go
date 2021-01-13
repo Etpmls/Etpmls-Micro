@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	initLog *log.Logger
+	InitLog *log.Logger
 )
 
 type init_Library struct {
@@ -34,10 +34,10 @@ func (this *init_Library) Start()  {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	initLog = log.New(this.logFile,"",log.LstdFlags | log.Llongfile)
+	InitLog = log.New(this.logFile,"",log.LstdFlags | log.Llongfile)
 }
 
 func (this *init_Library) Close()  {
-	initLog.Println("[INFO]", "Library initialization completed!")
+	InitLog.Println("[INFO]", "Library initialization completed!")
 	this.logFile.Close()
 }

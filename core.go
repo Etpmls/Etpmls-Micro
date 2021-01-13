@@ -23,9 +23,6 @@ const (
 	SUCCESS_Status = "success"
 )
 
-const defaultAuthServiceName  = "AuthService"
-
-
 // Whether it is a DEBUG environment
 // 是否为DEBUG环境
 func IsDebug() bool {

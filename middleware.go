@@ -54,12 +54,12 @@ func (this *defaultMiddleware) Auth() grpc.UnaryServerInterceptor {
 		// Get token from header
 		token, err:= Micro.Auth.Rpc_GetTokenFromHeader(ctx)
 		if err != nil || token == "" {
-			return nil, status.Error(codes.PermissionDenied, I18n.TranslateFromRequest(ctx, "ERROR_MESSAGE_PermissionDenied"))
+			return nil, status.Error(codes.PermissionDenied, "Permission Denied")
 		}
 
 		b, _ := Micro.Auth.VerifyToken(token)
 		if !b {
-			return nil, status.Error(codes.PermissionDenied, I18n.TranslateFromRequest(ctx, "ERROR_MESSAGE_PermissionDenied"))
+			return nil, status.Error(codes.PermissionDenied, "Permission Denied")
 		}
 
 		// Pass the token to the method
@@ -90,73 +90,3 @@ func (this *middleware) WithMiddleware(f runtime.HandlerFunc, middlware ...Middl
 		f(w, r, pathParams)
 	}
 }
-
-
-/*func (this *defaultMiddleware) Auth() grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-		// fullMethodName: /protobuf.User/GetCurrent
-		service := em_library.NewGrpc().GetServiceName(info.FullMethod)
-
-		token, err:= NewAuth().GetTokenFromHeader(ctx)
-		if err != nil {
-			return nil, status.Error(codes.InvalidArgument, em_library.I18n.TranslateFromRequest(ctx, "ERROR_MESSAGE_PermissionDenied"))
-		}
-
-		err = NewAuth().VerifyPermissions(token, service)
-		if err != nil {
-			return nil, status.Error(codes.InvalidArgument, em_library.I18n.TranslateFromRequest(ctx, "ERROR_MESSAGE_PermissionDenied"))
-		}
-
-		// Pass the token to the method
-		// 把token传递到方法中
-		ctx = context.WithValue(ctx,"token", token)
-
-		return handler(ctx, req)
-	}
-}
-
-
-
-func HttpVerifyToken(w http.ResponseWriter, r *http.request, pathParams map[string]string) error  {
-	token := r.Header.Get("token")
-	if len(token) == 0 {
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte("Permission Denied"))
-		return errors.New("Get token error")
-	}
-
-
-	b, _ := NewAuth().VerifyToken(token)
-	if b {
-		return nil
-	}
-
-	w.WriteHeader(http.StatusForbidden)
-	w.Write([]byte("Permission Denied"))
-	return errors.New("Permission Denied")
-}
-
-func HttpVerifyPermissions(w http.ResponseWriter, r *http.request, pathParams map[string]string) error  {
-	token := r.Header.Get("token")
-	if len(token) == 0 {
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte("Permission Denied"))
-		return errors.New("Get token error")
-	}
-
-	u, err := url.Parse(r.URL.String())
-	if err != nil {
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte("Permission Denied"))
-		return err
-	}
-
-	err = NewAuth().VerifyPermissions(token, u.Path)
-	if err != nil {
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte("Permission Denied"))
-		return err
-	}
-
-	return nil
-}*/

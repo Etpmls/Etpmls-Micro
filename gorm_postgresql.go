@@ -3,7 +3,6 @@
 package em
 
 import (
-	library "github.com/Etpmls/Etpmls-Micro/library"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -16,13 +15,19 @@ const (
 )
 
 func (this *Register) RunDatabase() {
-	dsn := "host=" + library.Config.Database.Host + " user=" + library.Config.Database.User + " password=" + library.Config.Database.Password + " dbname=" + library.Config.Database.Name + " port=" + library.Config.Database.Port + " sslmode=disable TimeZone=" + library.Config.Database.TimeZone
+	m, err2 := Kv.List(KvDatabase)
+	if err2 != nil {
+		LogInfo.OutputSimplePath(err2)
+		return
+	}
+
+	dsn := "host=" + m[KvDatabaseHost] + " user=" + m[KvDatabaseUser] + " password=" + m[KvDatabasePassword] + " dbname=" + m[KvDatabaseDbName] + " port=" + m[KvDatabasePort] + " sslmode=disable TimeZone=" + m[KvDatabaseTimezone]
 
 	//Connect Database
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
-			TablePrefix: library.Config.Database.Prefix,
+			TablePrefix: m[KvDatabasePrefix],
 		},
 	})
 	if err != nil {

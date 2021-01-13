@@ -15,7 +15,7 @@ func Init_Logrus(logLevel string) {
 	// Output to stdout instead of the default stderr
 	// Can be any io.Writer, see below for File example
 	Instance_Logrus.Out = &lumberjack.Logger{
-		Filename:   "storage/log/app.log",
+		Filename:   "../storage/log/app.log",
 		MaxSize:    500, // megabytes
 		MaxAge:     30, //days
 		Compress:   true, // disabled by default
@@ -25,9 +25,9 @@ func Init_Logrus(logLevel string) {
 	level, err := Package_Logrus.ParseLevel(logLevel)
 	if err != nil {
 		level = Package_Logrus.WarnLevel
-		initLog.Fatalln("[WARNING]", "Set Instance_Logrus Level Failed!", " Error:", err)
+		InitLog.Fatalln("[WARNING]", "Set Instance_Logrus Level Failed!", " Error:", err)
 	} else {
-		initLog.Println("[INFO]", "logrus initialized successfully.")
+		InitLog.Println("[INFO]", "logrus initialized successfully.")
 	}
 	Instance_Logrus.Level = level
 }

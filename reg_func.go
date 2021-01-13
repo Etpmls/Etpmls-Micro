@@ -2,7 +2,6 @@ package em
 
 import (
 	"encoding/json"
-	em_library "github.com/Etpmls/Etpmls-Micro/library"
 	em_protobuf "github.com/Etpmls/Etpmls-Micro/protobuf"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
@@ -12,13 +11,22 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"strconv"
+	"strings"
 )
 
 func defaultHandleExit() {
-	if em_library.Config.App.EnableServiceDiscovery {
-		err := ServiceDiscovery.CancelService()
-		if err != nil {
-			LogError.Output("Cancel service failed! " + MessageWithLineNum(err.Error()))
+	e, err := Kv.ReadKey(KvServiceDiscoveryEnable)
+	if err != nil {
+		LogInfo.OutputSimplePath(err)
+		return
+	}
+
+	if strings.ToLower(e) != "true" {
+		if ServiceDiscovery != nil {
+			err := ServiceDiscovery.CancelService()
+			if err != nil {
+				LogError.Output("Cancel service failed! " + MessageWithLineNum(err.Error()))
+			}
 		}
 	}
 
@@ -152,7 +160,11 @@ func defaultHandleRpcErrorFunc(rcpStatusCode codes.Code, code string, message st
 
 	// If enabled, use HTTP CODE instead of system default CODE
 	// 如果开启使用HTTP CODE 代替系统的默认CODE
-	if em_library.Config.App.UseHttpCode == true {
+	e, err := Kv.ReadKey(KvAppUseHttpCode)
+	if err != nil {
+		LogInfo.OutputSimplePath(err)
+	}
+	if strings.ToLower(e) != "true" {
 		code = strconv.Itoa(int(rcpStatusCode))
 	}
 

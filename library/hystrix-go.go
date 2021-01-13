@@ -10,7 +10,7 @@ func Init_HystrixGo(communicationTimeout time.Duration)  {
 		Timeout:               int(communicationTimeout),
 		ErrorPercentThreshold: 25,
 	})
-	initLog.Println("[INFO]", "Successfully loaded Init_HystrixGo.")
+	InitLog.Println("[INFO]", "Successfully loaded Init_HystrixGo.")
 }
 
 type hystrixGo struct {
