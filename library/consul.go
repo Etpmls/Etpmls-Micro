@@ -49,7 +49,7 @@ func Init_Consul(conf *ServiceConfig)  {
 	var c = NewConsul()
 	err = c.RegistrationService()
 	if err != nil {
-		InitLog.Println("[WARNING]", "Registration Consul Service failed.", " Error:", err)
+		InitLog.Println("[ERROR]", "Registration Consul Service failed.", " Error:", err)
 		go c.automaticRetry()
 	} else {
 		InitLog.Println("[INFO]", "Registration Consul Service successfully.")
@@ -188,6 +188,9 @@ func (this *consul) ReadKey(key string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if pair == nil {
+		return "", errors.New("Could not find the key of "+ key)
+	}
 	return string(pair.Value), nil
 }
 
@@ -213,7 +216,7 @@ func (this *consul) DeleteKey(key string) error {
 }
 
 func (this *consul) List(prefix string) (map[string]string, error) {
-	pairs, _, err := kv.List("test/", nil)
+	pairs, _, err := kv.List(prefix, nil)
 	if err != nil {
 		return nil, err
 	}

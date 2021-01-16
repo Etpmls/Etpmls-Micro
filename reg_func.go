@@ -2,6 +2,7 @@ package em
 
 import (
 	"encoding/json"
+	"github.com/Etpmls/Etpmls-Micro/define"
 	em_protobuf "github.com/Etpmls/Etpmls-Micro/protobuf"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
@@ -15,13 +16,13 @@ import (
 )
 
 func defaultHandleExit() {
-	e, err := Kv.ReadKey(KvServiceDiscoveryEnable)
+	e, err := Kv.ReadKey(define.KvServiceDiscoveryEnable)
 	if err != nil {
 		LogInfo.OutputSimplePath(err)
 		return
 	}
 
-	if strings.ToLower(e) != "true" {
+	if strings.ToLower(e) == "true" {
 		if ServiceDiscovery != nil {
 			err := ServiceDiscovery.CancelService()
 			if err != nil {
@@ -160,9 +161,9 @@ func defaultHandleRpcErrorFunc(rcpStatusCode codes.Code, code string, message st
 
 	// If enabled, use HTTP CODE instead of system default CODE
 	// 如果开启使用HTTP CODE 代替系统的默认CODE
-	e, err := Kv.ReadKey(KvAppUseHttpCode)
-	if err != nil {
-		LogInfo.OutputSimplePath(err)
+	e, err1 := Kv.ReadKey(define.KvAppUseHttpCode)
+	if err1 != nil {
+		LogInfo.OutputSimplePath(err1)
 	}
 	if strings.ToLower(e) != "true" {
 		code = strconv.Itoa(int(rcpStatusCode))

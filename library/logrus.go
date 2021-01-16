@@ -1,8 +1,12 @@
 package em_library
 
 import (
+	"fmt"
+	"github.com/Etpmls/Etpmls-Micro/define"
+	"github.com/hashicorp/consul/api"
 	Package_Logrus "github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
+	"time"
 )
 
 var Instance_Logrus *Package_Logrus.Logger
@@ -41,37 +45,81 @@ func NewLogrus() *logrus {
 }
 
 func (this *logrus) Panic(args ...interface{}) {
-	Instance_Logrus.Panic(args)
+	Instance_Logrus.Panic("[PANIC]", args)
+	go this.logToKv("[PANIC]", args)
 	return
 }
 
 func (this *logrus) Fatal(args ...interface{}) {
-	Instance_Logrus.Fatal(args)
+	Instance_Logrus.Fatal("[FATAL]", args)
+	if Instance_Logrus.Level >= Package_Logrus.FatalLevel {
+		go this.logToKv("[FATAL]", args)
+	}
 	return
 }
 
 func (this *logrus) Error(args ...interface{}) {
-	Instance_Logrus.Error(args)
+	Instance_Logrus.Error("[ERROR]", args)
+	if Instance_Logrus.Level >= Package_Logrus.ErrorLevel {
+		go this.logToKv("[ERROR]", args)
+	}
 	return
 }
 
 func (this *logrus) Warning(args ...interface{}) {
-	Instance_Logrus.Warning(args)
+	Instance_Logrus.Warning("[WARNING]", args)
+	if Instance_Logrus.Level >= Package_Logrus.WarnLevel {
+		go this.logToKv("[WARNING]", args)
+	}
+
 	return
 }
 
 func (this *logrus) Info(args ...interface{}) {
-	Instance_Logrus.Info(args)
+	Instance_Logrus.Info("[INFO]", args)
+	if Instance_Logrus.Level >= Package_Logrus.InfoLevel {
+		go this.logToKv("[INFO]", args)
+	}
+
 	return
 }
 
 func (this *logrus) Debug(args ...interface{}) {
-	Instance_Logrus.Debug(args)
+	Instance_Logrus.Debug("[DEBUG]", args)
+	if Instance_Logrus.Level >= Package_Logrus.DebugLevel {
+		go this.logToKv("[DEBUG]", args)
+	}
+
 	return
 }
 
 func (this *logrus) Trace(args ...interface{}) {
-	Instance_Logrus.Trace(args)
+	Instance_Logrus.Trace("[TRACE]", args)
+	if Instance_Logrus.Level >= Package_Logrus.TraceLevel {
+		go this.logToKv("[TRACE]", args)
+	}
+
+	return
+}
+
+func (this *logrus) logToKv(args ...interface{}) {
+	k := define.KvAppLog + time.Now().Format("2006-01")
+	pair, _, err := kv.Get(k, nil)
+	if err != nil || pair == nil {
+		p := &api.KVPair{Key: k, Value: []byte(fmt.Sprint(args))}
+		_, err := kv.Put(p, nil)
+		if err != nil {
+			Instance_Logrus.Error(err)
+			return
+		}
+		return
+	}
+
+	p := &api.KVPair{Key: k, Value: []byte(string(pair.Value) + "\n" + fmt.Sprint(args))}
+	_, err = kv.Put(p, nil)
+	if err != nil {
+		Instance_Logrus.Error(err)
+	}
 	return
 }
 

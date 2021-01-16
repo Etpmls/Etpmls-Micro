@@ -3,7 +3,7 @@ package em
 import (
 	"errors"
 	"fmt"
-	library "github.com/Etpmls/Etpmls-Micro/library"
+	"github.com/Etpmls/Etpmls-Micro/define"
 	"strings"
 )
 
@@ -44,9 +44,9 @@ func ParseLogLevel(str string) (Level, error) {
 
 
 const (
-	LOG_MODE_ONLY = 1
-	CONSOLE_MODE_ONLY = 2
-	LOG_CONSOLE_MODE = 3
+	LOG_MODE_ONLY = "1"
+	CONSOLE_MODE_ONLY = "2"
+	LOG_CONSOLE_MODE = "3"
 )
 
 
@@ -69,15 +69,20 @@ type OutputLog struct {
 // No matter whether it is in Debug mode, it will output an message
 // 无论是否为Debug模式，都输出信息
 func (o OutputLog) Output (info ...interface{}) {
-	l, err := ParseLogLevel(library.Config.Log.Level)
+	m, err := Kv.List(define.KvLog)
 	if err != nil {
-		Log.Panic(MessageWithLineNum("Error in the log function!"))
+		Log.Error(err)
+		return
+	}
+	l, err := ParseLogLevel(m[define.KvLogLevel])
+	if err != nil {
+		Log.Panic(MessageWithLineNum(err.Error()))
 		return
 	}
 
 	switch o.Level {
 	case PanicLevel:
-		switch library.Config.Log.Panic {
+		switch m[define.KvLogPanic] {
 		case LOG_MODE_ONLY:
 			Log.Panic(info...)
 		case CONSOLE_MODE_ONLY:
@@ -97,7 +102,7 @@ func (o OutputLog) Output (info ...interface{}) {
 		}
 
 	case FatalLevel:
-		switch library.Config.Log.Fatal {
+		switch m[define.KvLogFatal] {
 		case LOG_MODE_ONLY:
 			Log.Fatal(info...)
 		case CONSOLE_MODE_ONLY:
@@ -117,7 +122,7 @@ func (o OutputLog) Output (info ...interface{}) {
 		}
 
 	case ErrorLevel:
-		switch library.Config.Log.Error {
+		switch m[define.KvLogError] {
 		case LOG_MODE_ONLY:
 			Log.Error(info...)
 		case CONSOLE_MODE_ONLY:
@@ -137,7 +142,7 @@ func (o OutputLog) Output (info ...interface{}) {
 		}
 
 	case WarnLevel:
-		switch library.Config.Log.Warning {
+		switch m[define.KvLogWarning] {
 		case LOG_MODE_ONLY:
 			Log.Warning(info...)
 		case CONSOLE_MODE_ONLY:
@@ -157,7 +162,7 @@ func (o OutputLog) Output (info ...interface{}) {
 		}
 
 	case InfoLevel:
-		switch library.Config.Log.Info {
+		switch m[define.KvLogInfo] {
 		case LOG_MODE_ONLY:
 			Log.Info(info...)
 		case CONSOLE_MODE_ONLY:
@@ -177,7 +182,7 @@ func (o OutputLog) Output (info ...interface{}) {
 		}
 
 	case DebugLevel:
-		switch library.Config.Log.Debug {
+		switch m[define.KvLogDebug] {
 		case LOG_MODE_ONLY:
 			Log.Debug(info...)
 		case CONSOLE_MODE_ONLY:
@@ -197,7 +202,7 @@ func (o OutputLog) Output (info ...interface{}) {
 		}
 
 	case TraceLevel:
-		switch library.Config.Log.Trace {
+		switch m[define.KvLogTrace] {
 		case LOG_MODE_ONLY:
 			Log.Trace(info...)
 		case CONSOLE_MODE_ONLY:
@@ -248,9 +253,14 @@ func (this OutputLog) OutputAndReturnError (info ...interface{}) error {
 // If it is currently in Debug mode, it will output an return message, if it is in production mode, it will output a custom message
 // 若当前为Debug模式，则输出返回信息，若为生产模式，则输出自定义信息
 func (o OutputLog) OutputDebug (err error, msg interface{}) {
-	l, err := ParseLogLevel(library.Config.Log.Level)
+	mp, err := Kv.List(define.KvLog)
 	if err != nil {
-		Log.Panic(MessageWithLineNum("Error in the log function!"))
+		Log.Error(err)
+		return
+	}
+	l, err := ParseLogLevel(mp[define.KvLogLevel])
+	if err != nil {
+		Log.Panic(MessageWithLineNum(err.Error()))
 		return
 	}
 
@@ -263,7 +273,7 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 
 	switch o.Level {
 	case PanicLevel:
-		switch library.Config.Log.Panic {
+		switch mp[define.KvLogPanic] {
 		case LOG_MODE_ONLY:
 			Log.Panic(m)
 		case CONSOLE_MODE_ONLY:
@@ -284,7 +294,7 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 		}
 
 	case FatalLevel:
-		switch library.Config.Log.Fatal {
+		switch mp[define.KvLogFatal] {
 		case LOG_MODE_ONLY:
 			Log.Fatal(m)
 		case CONSOLE_MODE_ONLY:
@@ -304,7 +314,7 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 		}
 
 	case ErrorLevel:
-		switch library.Config.Log.Error {
+		switch mp[define.KvLogError] {
 		case LOG_MODE_ONLY:
 			Log.Error(m)
 		case CONSOLE_MODE_ONLY:
@@ -324,7 +334,7 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 		}
 
 	case WarnLevel:
-		switch library.Config.Log.Warning {
+		switch mp[define.KvLogWarning] {
 		case LOG_MODE_ONLY:
 			Log.Warning(m)
 		case CONSOLE_MODE_ONLY:
@@ -344,7 +354,7 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 		}
 
 	case InfoLevel:
-		switch library.Config.Log.Info {
+		switch mp[define.KvLogInfo] {
 		case LOG_MODE_ONLY:
 			Log.Info(m)
 		case CONSOLE_MODE_ONLY:
@@ -364,7 +374,7 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 		}
 
 	case DebugLevel:
-		switch library.Config.Log.Debug {
+		switch mp[define.KvLogDebug] {
 		case LOG_MODE_ONLY:
 			Log.Debug(m)
 		case CONSOLE_MODE_ONLY:
@@ -384,7 +394,7 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 		}
 
 	case TraceLevel:
-		switch library.Config.Log.Trace {
+		switch mp[define.KvLogTrace] {
 		case LOG_MODE_ONLY:
 			Log.Trace(m)
 		case CONSOLE_MODE_ONLY:

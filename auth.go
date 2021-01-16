@@ -2,6 +2,7 @@ package em
 
 import (
 	"context"
+	"github.com/Etpmls/Etpmls-Micro/define"
 	"github.com/dgrijalva/jwt-go"
 	"strconv"
 	"time"
@@ -14,7 +15,7 @@ type auth struct {
 // Verify that the token is valid
 // 验证token是否有效
 func (this *auth) VerifyToken(token string) (bool, error) {
-	k, err := Kv.ReadKey(KvAppKey)
+	k, err := Kv.ReadKey(define.KvAppKey)
 	if err != nil {
 		LogInfo.OutputSimplePath(err)
 		return false ,err
@@ -33,7 +34,7 @@ func (this *auth) VerifyToken(token string) (bool, error) {
 // Parse the token
 // 解析token
 func (this *auth) ParseToken(tokenString string) (interface{}, error) {
-	k, err := Kv.ReadKey(KvAppKey)
+	k, err := Kv.ReadKey(define.KvAppKey)
 	if err != nil {
 		LogInfo.OutputSimplePath(err)
 		return nil ,err
@@ -45,13 +46,13 @@ func (this *auth) ParseToken(tokenString string) (interface{}, error) {
 // Create a general token
 // 创建通用token
 func (this *auth) CreateGeneralToken(userId int, username string) (string, error) {
-	m, err := Kv.List(KvApp)
+	m, err := Kv.List(define.KvApp)
 	if err != nil {
 		LogInfo.OutputSimplePath(err)
 		return "" ,err
 	}
 
-	d, err := time.ParseDuration(m[KvAppTokenExpirationTime])
+	d, err := time.ParseDuration(m[define.KvAppTokenExpirationTime])
 	if err != nil {
 		LogInfo.OutputSimplePath(err)
 		d = time.Hour * 12
@@ -59,13 +60,13 @@ func (this *auth) CreateGeneralToken(userId int, username string) (string, error
 
 	return JwtToken.CreateToken(&jwt.StandardClaims{
 		Id: strconv.Itoa(userId),                                                          // 用户ID
-		ExpiresAt: time.Now().Add(time.Second * d).Unix(), // 过期时间 - 12个小时
+		ExpiresAt: time.Now().Add(d).Unix(), // 过期时间 - 12个小时
 		Issuer:    username,                                                                    // 发行者
-	}, m[KvAppKey])
+	}, m[define.KvAppKey])
 }
 
 func (this *auth) GetIdByToken(token string) (int, error) {
-	k, err := Kv.ReadKey(KvAppKey)
+	k, err := Kv.ReadKey(define.KvAppKey)
 	if err != nil {
 		LogInfo.OutputSimplePath(err)
 		return 0 ,err
@@ -75,7 +76,7 @@ func (this *auth) GetIdByToken(token string) (int, error) {
 }
 
 func (this *auth) GetIssuerByToken(token string) (string, error) {
-	k, err := Kv.ReadKey(KvAppKey)
+	k, err := Kv.ReadKey(define.KvAppKey)
 	if err != nil {
 		LogInfo.OutputSimplePath(err)
 		return "" ,err

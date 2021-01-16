@@ -171,3 +171,12 @@ func GetRandomNumberByLength(len int) int {
 	rand.Seed(time.Now().UnixNano())
 	return rand.Intn(len)
 }
+
+// Request : "abc"  Return: "abc"
+// Request : ""  Return: "[]"
+func IfEmptyChangeJsonFormat(str string) string {
+	if len(str) == 0 {
+		return "[]"
+	}
+	return str
+}

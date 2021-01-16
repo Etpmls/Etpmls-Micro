@@ -3,6 +3,8 @@ package em
 import (
 	"context"
 	"flag"
+	"github.com/Etpmls/Etpmls-Micro/define"
+	library "github.com/Etpmls/Etpmls-Micro/library"
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 	"net"
@@ -10,7 +12,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	library "github.com/Etpmls/Etpmls-Micro/library"
 )
 
 
@@ -19,7 +20,7 @@ import (
 */
 // https://github.com/grpc/grpc-go/blob/15a78f19307d5faf10cfdd9d4e664c65a387cbd1/examples/helloworld/greeter_server/main.go#L46
 func (this *Register) runGrpcServer()  {
-	k, err := Kv.ReadKey(MakeServiceConfField(library.Config.Service.RpcId, KvServiceRpcPort))
+	k, err := Kv.ReadKey(define.MakeServiceConfField(library.Config.Service.RpcId, define.KvServiceRpcPort))
 	if err != nil {
 		LogInfo.OutputSimplePath(err)
 		panic(err)
@@ -45,12 +46,12 @@ func (this *Register) runGrpcServer()  {
 	[HTTP]
 */
 func (this *Register) runHttpServer()  {
-	rp, err := Kv.ReadKey(MakeServiceConfField(library.Config.Service.RpcId, KvServiceRpcPort))
+	rp, err := Kv.ReadKey(define.MakeServiceConfField(library.Config.Service.RpcId, define.KvServiceRpcPort))
 	if err != nil {
 		LogInfo.OutputSimplePath(err)
 		panic(err)
 	}
-	hp, err := Kv.ReadKey(MakeServiceConfField(library.Config.Service.RpcId, KvServiceHttpPort))
+	hp, err := Kv.ReadKey(define.MakeServiceConfField(library.Config.Service.RpcId, define.KvServiceHttpPort))
 	if err != nil {
 		LogInfo.OutputSimplePath(err)
 		panic(err)

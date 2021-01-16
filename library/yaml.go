@@ -10,7 +10,7 @@ import (
 
 type Configuration struct {
 	Kv struct{
-		Address string
+		Address []string
 	}
 	Service struct{
 		RpcId	string `yaml:"rpc-id"`
@@ -39,6 +39,21 @@ func Init_Yaml() {
 	if err != nil {
 		InitLog.Fatal("Failed to unmarshal the Configuration file! Error:", err)
 		return
+	}
+
+	// Validate
+	switch  {
+	case len(Config.Kv.Address) == 0:
+		InitLog.Fatal("[FATAL]", "You need to configure Config.Kv.Address!")
+		return
+	case Config.Service.RpcId == "":
+		InitLog.Fatal("[FATAL]", "You need to configure Config.Service.RpcId!")
+		return
+	case Config.Service.RpcName == "":
+		InitLog.Fatal("[FATAL]", "You need to configure Config.Service.RpcName!")
+		return
+	default:
+
 	}
 
 	InitLog.Println("[INFO]", "Successfully loaded configuration file!")

@@ -19,7 +19,7 @@ func NewInit() *init_Library {
 }
 
 func (this *init_Library) Start()  {
-	fileName := "storage/log/init.log"
+	fileName := "../storage/log/init.log"
 	_, err := os.Stat(filepath.Dir(fileName))
 	if os.IsNotExist(err) {
 		err = os.MkdirAll(filepath.Dir(fileName), os.ModePerm)
