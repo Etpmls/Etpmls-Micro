@@ -102,13 +102,12 @@ func (this *Register) Init() {
 
 	t, err := Kv.ReadKey(define.KvAppCommunicationTimeout)
 	if err != nil {
-		library.InitLog.Println("[WARNING]", define.KvAppCommunicationTimeout, " is not configured!")
-		library.InitLog.Println("[INFO]", define.KvAppCommunicationTimeout, " is set to 5s!")
-		t = "5s"
+		library.InitLog.Println("[INFO][DEFAULT: " + define.DefaultAppCommunicationTimeout + "]", define.KvAppCommunicationTimeout, " is not configured!")
+		t = define.DefaultAppCommunicationTimeout
 	}
 	timeout, err := time.ParseDuration(t)
 	if err != nil {
-		library.InitLog.Println("[WARNING]","The format of " , define.KvAppCommunicationTimeout, " is incorrect!")
+		library.InitLog.Println("[INFO]","The format of " , define.KvAppCommunicationTimeout, " is incorrect!")
 		return
 	}
 
@@ -268,8 +267,8 @@ func (this *Register) initKv() {
 func (this *Register) initLog() {
 	level, err := Kv.ReadKey(define.KvLogLevel)
 	if err != nil {
-		library.InitLog.Println("[ERROR]", define.KvLogLevel, " is not configured!")
-		panic("[ERROR]"+ define.KvLogLevel+ " is not configured!")
+		library.InitLog.Println("[INFO][DEFAULT: " + define.DefaultLogLevel + "]", define.KvLogLevel, " is not configured!")
+		level = "info"
 	}
 	if this.OverrideInitLog == nil {
 		library.Init_Logrus(level)

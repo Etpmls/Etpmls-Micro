@@ -40,7 +40,7 @@ func Init_Consul(conf *ServiceConfig)  {
 	var err error
 	Instance_Consul, err = api.NewClient(conf.Config)
 	if err != nil {
-		InitLog.Fatalln("[WARNING]", "Consul initialization failed.", " Error:", err)
+		InitLog.Fatalln("[FATAL]", "Consul initialization failed.", " Error:", err)
 	}
 
 	// Registration Service
@@ -62,7 +62,7 @@ func InitConsulKv(c *api.Config)  {
 	// 建立连接
 	cl, err := api.NewClient(c)
 	if err != nil {
-		InitLog.Fatalln("[WARNING]", "Consul initialization failed.", " Error:", err)
+		InitLog.Fatalln("[FATAL]", "Consul initialization failed.", " Error:", err)
 	}
 
 	// Registration KV

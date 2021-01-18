@@ -54,8 +54,8 @@ func (this *auth) CreateGeneralToken(userId int, username string) (string, error
 
 	d, err := time.ParseDuration(m[define.KvAppTokenExpirationTime])
 	if err != nil {
-		LogInfo.OutputSimplePath(err)
-		d = time.Hour * 12
+		LogInfo.OutputSimplePath("[Default: " + define.DefaultAppTokenExpirationTimeText + "]" + define.KvAppTokenExpirationTime + " is not configured or format is incorrect.", err)
+		d = define.DefaultAppTokenExpirationTime
 	}
 
 	return JwtToken.CreateToken(&jwt.StandardClaims{

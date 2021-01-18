@@ -29,7 +29,7 @@ func Init_Logrus(logLevel string) {
 	level, err := Package_Logrus.ParseLevel(logLevel)
 	if err != nil {
 		level = Package_Logrus.WarnLevel
-		InitLog.Fatalln("[WARNING]", "Set Instance_Logrus Level Failed!", " Error:", err)
+		InitLog.Fatalln("[FATAL]", "Set Instance_Logrus Level Failed!", " Error:", err)
 	} else {
 		InitLog.Println("[INFO]", "logrus initialized successfully.")
 	}
@@ -46,14 +46,14 @@ func NewLogrus() *logrus {
 
 func (this *logrus) Panic(args ...interface{}) {
 	Instance_Logrus.Panic("[PANIC]", args)
-	go this.logToKv("[PANIC]", args)
+	go this.logToKv("[PANIC]", Config.Service.RpcId + ": ", args)
 	return
 }
 
 func (this *logrus) Fatal(args ...interface{}) {
 	Instance_Logrus.Fatal("[FATAL]", args)
 	if Instance_Logrus.Level >= Package_Logrus.FatalLevel {
-		go this.logToKv("[FATAL]", args)
+		go this.logToKv("[FATAL]", Config.Service.RpcId + ": ", args)
 	}
 	return
 }
@@ -61,7 +61,7 @@ func (this *logrus) Fatal(args ...interface{}) {
 func (this *logrus) Error(args ...interface{}) {
 	Instance_Logrus.Error("[ERROR]", args)
 	if Instance_Logrus.Level >= Package_Logrus.ErrorLevel {
-		go this.logToKv("[ERROR]", args)
+		go this.logToKv("[ERROR]", Config.Service.RpcId + ": ", args)
 	}
 	return
 }
@@ -69,7 +69,7 @@ func (this *logrus) Error(args ...interface{}) {
 func (this *logrus) Warning(args ...interface{}) {
 	Instance_Logrus.Warning("[WARNING]", args)
 	if Instance_Logrus.Level >= Package_Logrus.WarnLevel {
-		go this.logToKv("[WARNING]", args)
+		go this.logToKv("[WARNING]", Config.Service.RpcId + ": ", args)
 	}
 
 	return
@@ -78,7 +78,7 @@ func (this *logrus) Warning(args ...interface{}) {
 func (this *logrus) Info(args ...interface{}) {
 	Instance_Logrus.Info("[INFO]", args)
 	if Instance_Logrus.Level >= Package_Logrus.InfoLevel {
-		go this.logToKv("[INFO]", args)
+		go this.logToKv("[INFO]", Config.Service.RpcId + ": ", args)
 	}
 
 	return
@@ -87,7 +87,7 @@ func (this *logrus) Info(args ...interface{}) {
 func (this *logrus) Debug(args ...interface{}) {
 	Instance_Logrus.Debug("[DEBUG]", args)
 	if Instance_Logrus.Level >= Package_Logrus.DebugLevel {
-		go this.logToKv("[DEBUG]", args)
+		go this.logToKv("[DEBUG]", Config.Service.RpcId + ": ", args)
 	}
 
 	return
@@ -96,14 +96,14 @@ func (this *logrus) Debug(args ...interface{}) {
 func (this *logrus) Trace(args ...interface{}) {
 	Instance_Logrus.Trace("[TRACE]", args)
 	if Instance_Logrus.Level >= Package_Logrus.TraceLevel {
-		go this.logToKv("[TRACE]", args)
+		go this.logToKv("[TRACE]", Config.Service.RpcId + ": ", args)
 	}
 
 	return
 }
 
 func (this *logrus) logToKv(args ...interface{}) {
-	k := define.KvAppLog + time.Now().Format("2006-01")
+	k := define.KvLogLog + time.Now().Format("2006-01")
 	pair, _, err := kv.Get(k, nil)
 	if err != nil || pair == nil {
 		p := &api.KVPair{Key: k, Value: []byte(fmt.Sprint(args))}

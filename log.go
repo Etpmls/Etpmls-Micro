@@ -69,12 +69,16 @@ type OutputLog struct {
 // No matter whether it is in Debug mode, it will output an message
 // 无论是否为Debug模式，都输出信息
 func (o OutputLog) Output (info ...interface{}) {
-	m, err := Kv.List(define.KvLog)
+	m, err := Kv.List(define.KvLogOutputMethod)
 	if err != nil {
 		Log.Error(err)
 		return
 	}
-	l, err := ParseLogLevel(m[define.KvLogLevel])
+	lvl, lerr := Kv.ReadKey(define.KvLogLevel)
+	if lerr != nil {
+		lvl = define.DefaultLogLevel
+	}
+	l, err := ParseLogLevel(lvl)
 	if err != nil {
 		Log.Panic(MessageWithLineNum(err.Error()))
 		return
@@ -82,7 +86,7 @@ func (o OutputLog) Output (info ...interface{}) {
 
 	switch o.Level {
 	case PanicLevel:
-		switch m[define.KvLogPanic] {
+		switch m[define.KvLogOutputMethodPanic] {
 		case LOG_MODE_ONLY:
 			Log.Panic(info...)
 		case CONSOLE_MODE_ONLY:
@@ -102,7 +106,7 @@ func (o OutputLog) Output (info ...interface{}) {
 		}
 
 	case FatalLevel:
-		switch m[define.KvLogFatal] {
+		switch m[define.KvLogOutputMethodFatal] {
 		case LOG_MODE_ONLY:
 			Log.Fatal(info...)
 		case CONSOLE_MODE_ONLY:
@@ -122,7 +126,7 @@ func (o OutputLog) Output (info ...interface{}) {
 		}
 
 	case ErrorLevel:
-		switch m[define.KvLogError] {
+		switch m[define.KvLogOutputMethodError] {
 		case LOG_MODE_ONLY:
 			Log.Error(info...)
 		case CONSOLE_MODE_ONLY:
@@ -142,7 +146,7 @@ func (o OutputLog) Output (info ...interface{}) {
 		}
 
 	case WarnLevel:
-		switch m[define.KvLogWarning] {
+		switch m[define.KvLogOutputMethodWarning] {
 		case LOG_MODE_ONLY:
 			Log.Warning(info...)
 		case CONSOLE_MODE_ONLY:
@@ -162,7 +166,7 @@ func (o OutputLog) Output (info ...interface{}) {
 		}
 
 	case InfoLevel:
-		switch m[define.KvLogInfo] {
+		switch m[define.KvLogOutputMethodInfo] {
 		case LOG_MODE_ONLY:
 			Log.Info(info...)
 		case CONSOLE_MODE_ONLY:
@@ -182,7 +186,7 @@ func (o OutputLog) Output (info ...interface{}) {
 		}
 
 	case DebugLevel:
-		switch m[define.KvLogDebug] {
+		switch m[define.KvLogOutputMethodDebug] {
 		case LOG_MODE_ONLY:
 			Log.Debug(info...)
 		case CONSOLE_MODE_ONLY:
@@ -202,7 +206,7 @@ func (o OutputLog) Output (info ...interface{}) {
 		}
 
 	case TraceLevel:
-		switch m[define.KvLogTrace] {
+		switch m[define.KvLogOutputMethodTrace] {
 		case LOG_MODE_ONLY:
 			Log.Trace(info...)
 		case CONSOLE_MODE_ONLY:
@@ -253,12 +257,16 @@ func (this OutputLog) OutputAndReturnError (info ...interface{}) error {
 // If it is currently in Debug mode, it will output an return message, if it is in production mode, it will output a custom message
 // 若当前为Debug模式，则输出返回信息，若为生产模式，则输出自定义信息
 func (o OutputLog) OutputDebug (err error, msg interface{}) {
-	mp, err := Kv.List(define.KvLog)
+	mp, err := Kv.List(define.KvLogOutputMethod)
 	if err != nil {
 		Log.Error(err)
 		return
 	}
-	l, err := ParseLogLevel(mp[define.KvLogLevel])
+	lvl, lerr := Kv.ReadKey(define.KvLogLevel)
+	if lerr != nil {
+		lvl = define.DefaultLogLevel
+	}
+	l, err := ParseLogLevel(lvl)
 	if err != nil {
 		Log.Panic(MessageWithLineNum(err.Error()))
 		return
@@ -273,7 +281,7 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 
 	switch o.Level {
 	case PanicLevel:
-		switch mp[define.KvLogPanic] {
+		switch mp[define.KvLogOutputMethodPanic] {
 		case LOG_MODE_ONLY:
 			Log.Panic(m)
 		case CONSOLE_MODE_ONLY:
@@ -294,7 +302,7 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 		}
 
 	case FatalLevel:
-		switch mp[define.KvLogFatal] {
+		switch mp[define.KvLogOutputMethodFatal] {
 		case LOG_MODE_ONLY:
 			Log.Fatal(m)
 		case CONSOLE_MODE_ONLY:
@@ -314,7 +322,7 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 		}
 
 	case ErrorLevel:
-		switch mp[define.KvLogError] {
+		switch mp[define.KvLogOutputMethodError] {
 		case LOG_MODE_ONLY:
 			Log.Error(m)
 		case CONSOLE_MODE_ONLY:
@@ -334,7 +342,7 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 		}
 
 	case WarnLevel:
-		switch mp[define.KvLogWarning] {
+		switch mp[define.KvLogOutputMethodWarning] {
 		case LOG_MODE_ONLY:
 			Log.Warning(m)
 		case CONSOLE_MODE_ONLY:
@@ -354,7 +362,7 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 		}
 
 	case InfoLevel:
-		switch mp[define.KvLogInfo] {
+		switch mp[define.KvLogOutputMethodInfo] {
 		case LOG_MODE_ONLY:
 			Log.Info(m)
 		case CONSOLE_MODE_ONLY:
@@ -374,7 +382,7 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 		}
 
 	case DebugLevel:
-		switch mp[define.KvLogDebug] {
+		switch mp[define.KvLogOutputMethodDebug] {
 		case LOG_MODE_ONLY:
 			Log.Debug(m)
 		case CONSOLE_MODE_ONLY:
@@ -394,7 +402,7 @@ func (o OutputLog) OutputDebug (err error, msg interface{}) {
 		}
 
 	case TraceLevel:
-		switch mp[define.KvLogTrace] {
+		switch mp[define.KvLogOutputMethodTrace] {
 		case LOG_MODE_ONLY:
 			Log.Trace(m)
 		case CONSOLE_MODE_ONLY:

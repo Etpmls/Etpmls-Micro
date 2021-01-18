@@ -23,7 +23,7 @@ func Init_Redis(enableCache bool, address string, password string, db int)  {
 
 	_, err := Instance_Redis.Ping(context.TODO()).Result()
 	if err != nil {
-		InitLog.Fatalln("[WARNING]", "Redis initialization failed.", " Error:", err)
+		InitLog.Fatalln("[FATAL]", "Redis initialization failed.", " Error:", err)
 	} else {
 		InitLog.Println("[Info]", "redis initialized successfully.")
 	}
