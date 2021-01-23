@@ -31,11 +31,11 @@ func (this *Register) runGrpcServer()  {
 		LogFatal.Output("failed to listen: " + err.Error())
 	}
 
-	s := this.GrpcMiddleware()
+	s := this.RpcMiddleware()
 
 	// Register Service
 	// 注册服务
-	this.GrpcServiceFunc(s)
+	this.RpcServiceFunc(s)
 
 	if err := s.Serve(lis); err != nil {
 		LogFatal.Output("failed to serve: " + err.Error())
@@ -71,7 +71,7 @@ func (this *Register) runHttpServer()  {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	mux := this.GrpcEndpoint()
+	mux := this.RpcEndpoint()
 
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 
@@ -82,10 +82,10 @@ func (this *Register) runHttpServer()  {
 	}
 
 	// Custom Route
-	this.RouteFunc(mux)
+	this.HttpRouteFunc(mux)
 
 	// Set CORS
-	options := this.CorsOptions()
+	options := this.HttpCorsOptions()
 
 	handler := DefaultMiddleware().SetCors(mux, options)
 
@@ -100,7 +100,7 @@ func (this *Register) monitorExit()  {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGTERM)
 	<-c
-	this.HandleExitFunc()
+	this.AppHandleExitFunc()
 }
 
 

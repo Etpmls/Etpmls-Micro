@@ -17,28 +17,23 @@ const (
 )
 
 func (this *Register) RunDatabase() {
-	m, err2 := Kv.List(define.MakeServiceConfField(em_library.Config.Service.RpcName, define.KvServiceDatabase))
-	if err2 != nil {
-		LogInfo.OutputSimplePath(err2)
-		return
-	}
-
 	var (
-		host = define.MakeServiceConfField(em_library.Config.Service.RpcName, define.KvServiceDatabaseHost)
-		user = define.MakeServiceConfField(em_library.Config.Service.RpcName, define.KvServiceDatabaseUser)
-		password = define.MakeServiceConfField(em_library.Config.Service.RpcName, define.KvServiceDatabasePassword)
-		port = define.MakeServiceConfField(em_library.Config.Service.RpcName, define.KvServiceDatabasePort)
-		dbname = define.MakeServiceConfField(em_library.Config.Service.RpcName, define.KvServiceDatabaseDbName)
-		timezone = define.MakeServiceConfField(em_library.Config.Service.RpcName, define.KvServiceDatabaseTimezone)
-		prefix = define.MakeServiceConfField(em_library.Config.Service.RpcName, define.KvServiceDatabasePrefix)
+		host = MustGetServiceNameKvKey(define.KvServiceDatabaseHost)
+		user = MustGetServiceNameKvKey(define.KvServiceDatabaseUser)
+		password = MustGetServiceNameKvKey(define.KvServiceDatabasePassword)
+		port = MustGetServiceNameKvKey(define.KvServiceDatabasePort)
+		dbname = MustGetServiceNameKvKey(define.KvServiceDatabaseDbName)
+		timezone = MustGetServiceNameKvKey(define.KvServiceDatabaseTimezone)
+		prefix = MustGetServiceNameKvKey(define.KvServiceDatabasePrefix)
 	)
-	dsn := this.panicIfMapValueEmpty(user, m) + ":" + this.panicIfMapValueEmpty(password, m) + "@tcp(" + this.panicIfMapValueEmpty(host, m) + ":" + this.panicIfMapValueEmpty(port, m) + ")/" + this.panicIfMapValueEmpty(dbname, m) + "?charset=utf8mb4&parseTime=True&loc=" + url.QueryEscape(this.panicIfMapValueEmpty(timezone, m))
+
+	dsn := user + ":" + password + "@tcp(" + host + ":" + port + ")/" + dbname + "?charset=utf8mb4&parseTime=True&loc=" + url.QueryEscape(timezone)
 
 	//Connect Database
 	var err error
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
-			TablePrefix:   this.panicIfMapValueEmpty(prefix, m),
+			TablePrefix:   prefix,
 		},
 	})
 	if err != nil {

@@ -28,6 +28,12 @@ func defaultHandleExit() {
 			if err != nil {
 				LogError.Output("Cancel service failed! " + MessageWithLineNum(err.Error()))
 			}
+			if Reg.CustomServerServiceExitFunc != nil {
+				err := Reg.CustomServerServiceExitFunc()
+				if err != nil {
+					LogError.OutputSimplePath("Cancel custom service failed! " + err.Error())
+				}
+			}
 		}
 	}
 

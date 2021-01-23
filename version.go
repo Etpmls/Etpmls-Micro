@@ -17,7 +17,7 @@ func init_version(reg *Register) bool {
 	flag.Parse()
 	if *flag_Version {
 		VersionRegistration("Etpmls-Micro Version", Version_Framework)
-		for k, v := range reg.Version {
+		for k, v := range reg.AppVersion {
 			VersionRegistration(k, v)
 		}
 		return true

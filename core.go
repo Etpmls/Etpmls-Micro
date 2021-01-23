@@ -48,19 +48,19 @@ func (this Response) String() (string) {
 // Return error message in json format
 // 返回json格式的错误信息
 func ErrorRpc(rcpStatusCode codes.Code, code string, message string, data interface{}, err error) (*em_protobuf.Response, error) {
-	return EA.ReturnRpcErrorFunc(rcpStatusCode, code, message, data, err)
+	return Reg.RpcReturnErrorFunc(rcpStatusCode, code, message, data, err)
 }
 
 func ErrorHttp(code string, message string, data interface{}, err error) ([]byte, error) {
-	return EA.ReturnHttpErrorFunc(code, message, data, err)
+	return Reg.HttpReturnErrorFunc(code, message, data, err)
 }
 
 // Return success information in json format
 // 返回json格式的成功信息
 func SuccessRpc(code string, message string, data interface{}) (*em_protobuf.Response, error) {
-	return EA.ReturnRpcSuccessFunc(code, message, data)
+	return Reg.RpcReturnSuccessFunc(code, message, data)
 }
 
 func SuccessHttp(code string, message string, data interface{}) ([]byte, error) {
-	return EA.ReturnHttpSuccessFunc(code, message, data)
+	return Reg.HttpReturnSuccessFunc(code, message, data)
 }

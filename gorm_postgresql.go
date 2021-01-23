@@ -4,7 +4,6 @@ package em
 
 import (
 	"github.com/Etpmls/Etpmls-Micro/define"
-	em_library "github.com/Etpmls/Etpmls-Micro/library"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -17,28 +16,22 @@ const (
 )
 
 func (this *Register) RunDatabase() {
-	m, err2 := Kv.List(define.MakeServiceConfField(em_library.Config.Service.RpcName, define.KvServiceDatabase))
-	if err2 != nil {
-		LogInfo.OutputSimplePath(err2)
-		return
-	}
-
 	var (
-		host = define.MakeServiceConfField(em_library.Config.Service.RpcName, define.KvServiceDatabaseHost)
-		user = define.MakeServiceConfField(em_library.Config.Service.RpcName, define.KvServiceDatabaseUser)
-		password = define.MakeServiceConfField(em_library.Config.Service.RpcName, define.KvServiceDatabasePassword)
-		port = define.MakeServiceConfField(em_library.Config.Service.RpcName, define.KvServiceDatabasePort)
-		dbname = define.MakeServiceConfField(em_library.Config.Service.RpcName, define.KvServiceDatabaseDbName)
-		timezone = define.MakeServiceConfField(em_library.Config.Service.RpcName, define.KvServiceDatabaseTimezone)
-		prefix = define.MakeServiceConfField(em_library.Config.Service.RpcName, define.KvServiceDatabasePrefix)
+		host = MustGetServiceNameKvKey(define.KvServiceDatabaseHost)
+		user = MustGetServiceNameKvKey(define.KvServiceDatabaseUser)
+		password = MustGetServiceNameKvKey(define.KvServiceDatabasePassword)
+		port = MustGetServiceNameKvKey(define.KvServiceDatabasePort)
+		dbname = MustGetServiceNameKvKey(define.KvServiceDatabaseDbName)
+		timezone = MustGetServiceNameKvKey(define.KvServiceDatabaseTimezone)
+		prefix = MustGetServiceNameKvKey(define.KvServiceDatabasePrefix)
 	)
-	dsn := "host=" + this.panicIfMapValueEmpty(host, m) + " user=" + this.panicIfMapValueEmpty(user, m) + " password=" + this.panicIfMapValueEmpty(password, m) + " dbname=" + this.panicIfMapValueEmpty(dbname, m) + " port=" + this.panicIfMapValueEmpty(port, m) + " sslmode=disable TimeZone=" + this.panicIfMapValueEmpty(timezone, m)
+	dsn := "host=" + host + " user=" + user + " password=" + password + " dbname=" + dbname + " port=" + port + " sslmode=disable TimeZone=" + timezone
 
 	//Connect Database
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
-			TablePrefix: this.panicIfMapValueEmpty(prefix, m),
+			TablePrefix: prefix,
 		},
 	})
 	if err != nil {

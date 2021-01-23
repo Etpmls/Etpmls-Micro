@@ -28,32 +28,35 @@ const (
 	EnableCaptcha = "Captcha"
 )
 
-var EA *Register
+var Reg *Register
 
 
 type Register struct {
 	// APP
 	// Version Infomation
 	// main.exe -version
-	Version                   map[string]string
-	HandleExitFunc            func()
-	EnabledFeatureName		[]string
-	stoprun				  bool
-	// Grpc
-	GrpcServiceFunc           func(*grpc.Server)
-	GrpcMiddleware            func() *grpc.Server
-	GrpcEndpoint              func() *runtime.ServeMux
-	ReturnRpcSuccessFunc      func(code string, message string, data interface{}) (*em_protobuf.Response, error)
-	ReturnRpcErrorFunc    func(rcpStatusCode codes.Code, code string, message string, data interface{}, err error) (*em_protobuf.Response, error)
+	AppVersion            map[string]string
+	AppHandleExitFunc     func()
+	AppEnabledFeatureName []string
+	// Rpc
+	RpcServiceFunc       func(*grpc.Server)
+	RpcMiddleware        func() *grpc.Server
+	RpcEndpoint          func() *runtime.ServeMux
+	RpcReturnSuccessFunc func(code string, message string, data interface{}) (*em_protobuf.Response, error)
+	RpcReturnErrorFunc   func(rcpStatusCode codes.Code, code string, message string, data interface{}, err error) (*em_protobuf.Response, error)
 	// HTTP
-	HttpServiceFunc           func(ctx context.Context, mux *runtime.ServeMux, grpcServerEndpoint *string, opts []grpc.DialOption) error
-	RouteFunc                 func(mux *runtime.ServeMux)
-	CorsOptions               func() cors.Options
-	ReturnHttpSuccessFunc func(code string, message string, data interface{}) ([]byte, error)
-	ReturnHttpErrorFunc   func(code string, message string, data interface{}, err error) ([]byte, error)
+	HttpServiceFunc       func(ctx context.Context, mux *runtime.ServeMux, grpcServerEndpoint *string, opts []grpc.DialOption) error
+	HttpRouteFunc         func(mux *runtime.ServeMux)
+	HttpCorsOptions       func() cors.Options
+	HttpReturnSuccessFunc func(code string, message string, data interface{}) ([]byte, error)
+	HttpReturnErrorFunc   func(code string, message string, data interface{}, err error) ([]byte, error)
+	// Custom Server
+	CustomServerFunc                               []func()
+	CustomServerServiceRegisterFunc                func() error
+	CustomServerServiceExitFunc                    func() error
 	// Database
 	DatabaseMigrate           []interface{}
-	InsertDatabaseInitialData []func()
+	DatabaseInsertInitialData []func()
 
 	OverrideInitYaml		func() *library.Configuration
 	OverrideInitKv	func(address string) *Interface_KV
@@ -66,6 +69,8 @@ type Register struct {
 	OverrideInitServiceDiscovery func(*library.ServiceConfig) *Interface_ServiceDiscovery
 	OverrideInitJwtToken func() *Interface_Jwt
 	OverrideInitCaptcha func() *Interface_Captcha
+	stoprun				  bool
+	initFinished bool
 }
 
 
@@ -79,6 +84,8 @@ func (this *Register) Init() {
 		return
 	default:
 	}
+
+	Reg = this
 
 	// Write log to File
 	i := library.NewInit()
@@ -131,14 +138,16 @@ func (this *Register) Init() {
 
 	// Check whether the function is turned on to prevent interface nil during operation
 	// 检查功能是否开启，防止运行期间出现接口nil的情况
-	this.checkFeatureEnable(this.EnabledFeatureName)
+	this.checkFeatureEnable(this.AppEnabledFeatureName)
 
 	Micro.Config = &library.Config
-	EA = this
+
 
 
 	// Generate key
 	this.generateKey()
+
+	Reg.initFinished = true
 }
 
 func (this *Register) Run()  {
@@ -159,35 +168,42 @@ func (this *Register) Run()  {
 
 
 	// Default Func
-	if this.ReturnRpcSuccessFunc == nil {
-		this.ReturnRpcSuccessFunc = defaultHandleRpcSuccessFunc
+	if this.RpcReturnSuccessFunc == nil {
+		this.RpcReturnSuccessFunc = defaultHandleRpcSuccessFunc
 	}
-	if this.ReturnRpcErrorFunc == nil {
-		this.ReturnRpcErrorFunc = defaultHandleRpcErrorFunc
+	if this.RpcReturnErrorFunc == nil {
+		this.RpcReturnErrorFunc = defaultHandleRpcErrorFunc
 	}
-	if this.ReturnHttpSuccessFunc == nil {
-		this.ReturnHttpSuccessFunc = defaultHandleHttpSucessFunc
+	if this.HttpReturnSuccessFunc == nil {
+		this.HttpReturnSuccessFunc = defaultHandleHttpSucessFunc
 	}
-	if this.ReturnHttpErrorFunc == nil {
-		this.ReturnHttpErrorFunc = defaultHandleHttpErrorFunc
+	if this.HttpReturnErrorFunc == nil {
+		this.HttpReturnErrorFunc = defaultHandleHttpErrorFunc
 	}
-	if this.GrpcMiddleware == nil {
-		this.GrpcMiddleware = defaultGrpcMiddlewareFunc
+	if this.RpcMiddleware == nil {
+		this.RpcMiddleware = defaultGrpcMiddlewareFunc
 	}
-	if this.CorsOptions == nil {
-		this.CorsOptions = defaultCorsOptions
+	if this.HttpCorsOptions == nil {
+		this.HttpCorsOptions = defaultCorsOptions
 	}
-	if this.GrpcEndpoint == nil {
-		this.GrpcEndpoint = defaultRegisterEndpoint
+	if this.RpcEndpoint == nil {
+		this.RpcEndpoint = defaultRegisterEndpoint
 	}
-	if this.HandleExitFunc == nil {
-		this.HandleExitFunc = defaultHandleExit
+	if this.AppHandleExitFunc == nil {
+		this.AppHandleExitFunc = defaultHandleExit
 	}
 
-
+	// Rpc Server
 	go this.runGrpcServer()
+	// Http Server
 	if this.HttpServiceFunc != nil {
 		go this.runHttpServer()
+	}
+	// Other Service
+	if this.CustomServerFunc != nil {
+		for _, v := range this.CustomServerFunc {
+			go v()
+		}
 	}
 
 	this.monitorExit()
@@ -204,7 +220,7 @@ func (this *Register) InsertDataToDatabase()  {
 
 	if _, ok := env["INIT_DATABASE"]; ok {
 		if strings.ToUpper(env["INIT_DATABASE"]) == "TRUE" {
-			for _, v := range this.InsertDatabaseInitialData {
+			for _, v := range this.DatabaseInsertInitialData {
 				v()
 			}
 			env["INIT_DATABASE"] = "FALSE"
@@ -228,14 +244,6 @@ func (this *Register) logAndChangeJsonFormatIfMapValueEmpty(key string, m map[st
 func (this *Register) logIfMapValueEmpty(key string, m map[string]string) string {
 	if len(m[key]) == 0 {
 		library.InitLog.Println("[WARNING]", key, " is not configured!")
-	}
-	return m[key]
-}
-
-func (this *Register) panicIfMapValueEmpty(key string, m map[string]string) string {
-	if len(m[key]) == 0 {
-		library.InitLog.Println("[ERROR]", key, " is not configured!")
-		panic(("[ERROR]"+ key+ " is not configured!"))
 	}
 	return m[key]
 }
@@ -350,70 +358,55 @@ func (this *Register) initCache() {
 
 func (this *Register) initServiceDiscovery(timeout time.Duration)  {
 	// - if enable
-	sDMap, err := Kv.List(define.KvServiceDiscovery)
-	if err != nil || strings.ToLower(sDMap[define.KvServiceDiscoveryEnable]) != "true" {
+	s, err := Kv.ReadKey(define.KvServiceDiscoveryEnable)
+	if err != nil || strings.ToLower(s) != "true" {
 		library.InitLog.Println("[WARNING]", define.KvServiceDiscoveryEnable, " is not configured or not enable!")
 	} else {
 		pkgConfig := api.DefaultConfig()
-		pkgConfig.Address = this.panicIfMapValueEmpty(define.KvServiceDiscoveryAddress, sDMap)
+		pkgConfig.Address = MustGetKvKey(define.KvServiceDiscoveryAddress)
 		pkgConfig.WaitTime = timeout
 
 		// Set tags
-		// - Get global tag
-		var glbRTag, glbHTag []string
-		srvNameMap, err := Kv.List(define.MakeServiceConfField(library.Config.Service.RpcName, "/")) // service/rpcName/
-		if err == nil {
-			rtKey := define.MakeServiceConfField(library.Config.Service.RpcName, define.KvServiceRpcTag)
-			htKey := define.MakeServiceConfField(library.Config.Service.RpcName, define.KvServiceHttpTag)
-			_ = json.Unmarshal([]byte(this.logAndChangeJsonFormatIfMapValueEmpty(rtKey, srvNameMap)), &glbRTag) // service/rpcName/rpc-tag
-			_ = json.Unmarshal([]byte(this.logAndChangeJsonFormatIfMapValueEmpty(htKey, srvNameMap)), &glbHTag) // service/rpcName/http-tag
-		}
-
-		// - Get current service node tag
-		srvIdMap, err := Kv.List(define.MakeServiceConfField(library.Config.Service.RpcId, "/")) // service/rpcId/
-		var rTag []string
-		rtKey2 := define.MakeServiceConfField(library.Config.Service.RpcId, define.KvServiceRpcTag)
-		err = json.Unmarshal([]byte(this.logAndChangeJsonFormatIfMapValueEmpty(rtKey2, srvIdMap)), &rTag) // service/rpcID/rpc-tag
+		rt, err := GetServiceKvKey(define.KvServiceRpcTag)
 		if err != nil {
-			library.InitLog.Println("[ERROR]", "RpcTag format error!", err)
-			rTag = glbRTag
+			rt = "[]"
 		}
-		if len(rTag) == 0 {
-			rTag = glbRTag
-		}
-
-		var hTag []string
-		htKey2 := define.MakeServiceConfField(library.Config.Service.RpcId, define.KvServiceHttpTag)
-		err = json.Unmarshal([]byte(this.logAndChangeJsonFormatIfMapValueEmpty(htKey2, srvIdMap)), &hTag) // service/rpcID/http-tag
+		ht, err := GetServiceKvKey(define.KvServiceHttpTag)
 		if err != nil {
-			library.InitLog.Println("[ERROR]", "HttpTag format error!", err)
-			hTag = glbHTag
+			ht = "[]"
 		}
-		if len(hTag) == 0 {
-			hTag = glbHTag
-		}
-
+		var rTag, hTag []string
+		_ = json.Unmarshal([]byte(rt), &rTag)
+		_ = json.Unmarshal([]byte(ht), &hTag)
 
 		var config = library.ServiceConfig{
-			Config: pkgConfig,
+			Config:        pkgConfig,
 			RpcId:         library.Config.Service.RpcId,
 			RpcName:       library.Config.Service.RpcName,
-			RpcPort:       this.panicIfMapValueEmpty(define.MakeServiceConfField(library.Config.Service.RpcId, define.KvServiceRpcPort), srvIdMap),
+			RpcPort:       MustGetServiceIdKvKey(define.KvServiceRpcPort),
 			RpcTag:        rTag,
-			HttpId:        this.panicIfMapValueEmpty(define.MakeServiceConfField(library.Config.Service.RpcId, define.KvServiceHttpId), srvIdMap),
-			HttpName:      this.panicIfMapValueEmpty(define.MakeServiceConfField(library.Config.Service.RpcId, define.KvServiceHttpName), srvIdMap),
-			HttpPort:      this.panicIfMapValueEmpty(define.MakeServiceConfField(library.Config.Service.RpcId, define.KvServiceHttpPort), srvIdMap),
+			HttpId:        MustGetServiceIdKvKey(define.KvServiceHttpId),
+			HttpName:      MustGetServiceKvKey(define.KvServiceHttpName),
+			HttpPort:      MustGetServiceIdKvKey(define.KvServiceHttpPort),
 			HttpTag:       hTag,
-			Address:       this.panicIfMapValueEmpty(define.MakeServiceConfField(library.Config.Service.RpcId, define.KvServiceAddress), srvIdMap),
-			CheckInterval: this.panicIfMapValueEmpty(define.MakeServiceConfField(library.Config.Service.RpcId, define.KvServiceCheckInterval), srvIdMap),
-			CheckUrl:      this.panicIfMapValueEmpty(define.MakeServiceConfField(library.Config.Service.RpcId, define.KvServiceCheckUrl), srvIdMap),
+			Address:       MustGetServiceIdKvKey(define.KvServiceAddress),
+			CheckInterval: MustGetServiceKvKey(define.KvServiceCheckInterval),
+			CheckUrl:      MustGetServiceIdKvKey(define.KvServiceCheckUrl),
 		}
 
 		if this.OverrideInitServiceDiscovery == nil {
 			library.Init_Consul(&config)
 		} else {
-			this.OverrideInitServiceDiscovery(&config)
+			ServiceDiscovery = *this.OverrideInitServiceDiscovery(&config)
 		}
+
+		if this.CustomServerServiceRegisterFunc != nil {
+			err := this.CustomServerServiceRegisterFunc()
+			if err != nil {
+				go this.reRegisterCustomServerService()
+			}
+		}
+
 	}
 }
 
@@ -472,6 +465,19 @@ func (this *Register) generateKey() {
 		err := Kv.CrateOrUpdateKey(define.KvAppKey, GenerateRandomString(50))
 		if err != nil {
 			panic(err)
+		}
+	}
+}
+
+// When initial registration fails, automatically retry registration
+// 当初始化注册失败时，自动重试注册
+func (this *Register) reRegisterCustomServerService() {
+	for {
+		time.Sleep(time.Second * 5)
+		err := this.CustomServerServiceRegisterFunc()
+		if err == nil {
+			library.InitLog.Println("[INFO]", "Custom Server Service registered successfully!")
+			break
 		}
 	}
 }
