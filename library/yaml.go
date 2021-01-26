@@ -11,6 +11,7 @@ import (
 type Configuration struct {
 	Kv struct{
 		Address []string
+		Token string
 	}
 	Service struct{
 		RpcId	string `yaml:"rpc-id"`
@@ -24,9 +25,9 @@ func Init_Yaml() {
 	var yamlPath string
 
 	if os.Getenv("DEBUG") == "TRUE" {
-		yamlPath = "../storage/config/app_debug.yaml"
+		yamlPath = "./storage/config/app_debug.yaml"
 	} else{
-		yamlPath = "../storage/config/app.yaml"
+		yamlPath = "./storage/config/app.yaml"
 	}
 
 	b, err := ioutil.ReadFile(yamlPath)
@@ -54,6 +55,10 @@ func Init_Yaml() {
 		return
 	default:
 
+	}
+
+ 	if len(Config.Kv.Token) == 0 {
+		InitLog.Println("[WARNING]", "Config.Kv.Token is not configured.")
 	}
 
 	InitLog.Println("[INFO]", "Successfully loaded configuration file!")

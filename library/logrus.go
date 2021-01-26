@@ -19,7 +19,7 @@ func Init_Logrus(logLevel string) {
 	// Output to stdout instead of the default stderr
 	// Can be any io.Writer, see below for File example
 	Instance_Logrus.Out = &lumberjack.Logger{
-		Filename:   "../storage/log/app.log",
+		Filename:   "./storage/log/app.log",
 		MaxSize:    500, // megabytes
 		MaxAge:     30, //days
 		Compress:   true, // disabled by default

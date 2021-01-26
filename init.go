@@ -59,7 +59,7 @@ type Register struct {
 	DatabaseInsertInitialData []func()
 
 	OverrideInitYaml		func() *library.Configuration
-	OverrideInitKv	func(address string) *Interface_KV
+	OverrideInitKv	func() *Interface_KV
 	OverrideInitLog	func(level string) *Interface_Log
 	OverrideInitCache	func(enableCache bool, address string, password string, db int) *Interface_Cache
 	OverrideInitValidator func() *Interface_Validator
@@ -265,10 +265,11 @@ func (this *Register) initKv() {
 	if this.OverrideInitKv == nil {
 		var conf = api.Config{
 			Address:    library.Config.Kv.Address[idx],
+			Token:      library.Config.Kv.Token,
 		}
 		library.InitConsulKv(&conf)
 	} else {
-		Kv = *this.OverrideInitKv(library.Config.Kv.Address[idx])
+		Kv = *this.OverrideInitKv()
 	}
 }
 
