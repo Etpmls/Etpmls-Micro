@@ -3,7 +3,7 @@ package define
 import "time"
 
 const (
-	DefaultAppCommunicationTimeout = "5s"
+	DefaultAppCommunicationTimeout = "60s"
 	DefaultLogLevel = "info"
 	DefaultAppTokenExpirationTime = time.Hour * 12
 	DefaultAppTokenExpirationTimeText = "12h"
