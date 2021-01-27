@@ -366,6 +366,7 @@ func (this *Register) initServiceDiscovery(timeout time.Duration)  {
 		pkgConfig := api.DefaultConfig()
 		pkgConfig.Address = MustGetKvKey(define.KvServiceDiscoveryAddress)
 		pkgConfig.WaitTime = timeout
+		pkgConfig.Token = library.Config.Kv.Token
 
 		// Set tags
 		rt, err := GetServiceKvKey(define.KvServiceRpcTag)
