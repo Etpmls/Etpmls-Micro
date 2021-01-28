@@ -1,4 +1,4 @@
-module github.com/Etpmls/Etpmls-Micro
+module github.com/Etpmls/Etpmls-Micro/v2
 
 go 1.13
 
