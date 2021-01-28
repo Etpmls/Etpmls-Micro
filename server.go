@@ -3,8 +3,8 @@ package em
 import (
 	"context"
 	"flag"
-	"github.com/Etpmls/Etpmls-Micro/define"
-	library "github.com/Etpmls/Etpmls-Micro/library"
+	"github.com/Etpmls/Etpmls-Micro/v2/define"
+	library "github.com/Etpmls/Etpmls-Micro/v2/library"
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 	"net"

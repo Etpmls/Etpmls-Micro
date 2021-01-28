@@ -2,7 +2,7 @@ package em
 
 import (
 	"context"
-	"github.com/Etpmls/Etpmls-Micro/library"
+	"github.com/Etpmls/Etpmls-Micro/v2/library"
 	"time"
 )
 

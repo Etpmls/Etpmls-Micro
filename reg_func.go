@@ -2,8 +2,8 @@ package em
 
 import (
 	"encoding/json"
-	"github.com/Etpmls/Etpmls-Micro/define"
-	em_protobuf "github.com/Etpmls/Etpmls-Micro/protobuf"
+	"github.com/Etpmls/Etpmls-Micro/v2/define"
+	em_protobuf "github.com/Etpmls/Etpmls-Micro/v2/protobuf"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"

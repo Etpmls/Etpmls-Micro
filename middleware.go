@@ -2,7 +2,7 @@ package em
 
 import (
 	"context"
-	em_library "github.com/Etpmls/Etpmls-Micro/library"
+	em_library "github.com/Etpmls/Etpmls-Micro/v2/library"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"

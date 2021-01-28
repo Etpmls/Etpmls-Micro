@@ -1,6 +1,6 @@
 package em
 
-import em_library "github.com/Etpmls/Etpmls-Micro/library"
+import em_library "github.com/Etpmls/Etpmls-Micro/v2/library"
 
 var Micro center
 

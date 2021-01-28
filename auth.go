@@ -2,7 +2,7 @@ package em
 
 import (
 	"context"
-	"github.com/Etpmls/Etpmls-Micro/define"
+	"github.com/Etpmls/Etpmls-Micro/v2/define"
 	"github.com/dgrijalva/jwt-go"
 	"strconv"
 	"time"

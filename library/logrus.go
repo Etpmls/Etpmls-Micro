@@ -2,7 +2,7 @@ package em_library
 
 import (
 	"fmt"
-	"github.com/Etpmls/Etpmls-Micro/define"
+	"github.com/Etpmls/Etpmls-Micro/v2/define"
 	"github.com/hashicorp/consul/api"
 	Package_Logrus "github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"

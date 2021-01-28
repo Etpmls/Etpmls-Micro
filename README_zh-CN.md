@@ -48,7 +48,7 @@ Etpmls-Micro（简称EM）是一个微服务框架，使用本框架可以在短
 ## 安装
 使用go mod安装
 ```go
-import "github.com/Etpmls/Etpmls-Micro"
+import "github.com/Etpmls/Etpmls-Micro/v2"
 ```
 
 ## 快速入门
@@ -59,7 +59,7 @@ import "github.com/Etpmls/Etpmls-Micro"
 // Etpmls-Micro/example/main.go
 package main
 
-import "github.com/Etpmls/Etpmls-Micro"
+import "github.com/Etpmls/Etpmls-Micro/v2"
 
 func main()  {
 	var reg = em.Register{
@@ -483,7 +483,7 @@ func RegisterHttpService(ctx context.Context, mux *runtime.ServeMux, grpcServerE
 package register
 
 import (
-	em "github.com/Etpmls/Etpmls-Micro"
+	em "github.com/Etpmls/Etpmls-Micro/v2"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"net/http"
 )
@@ -507,7 +507,7 @@ package main
 
 import (
 	"github.com/Etpmls/EM-Auth/src/register"
-	"github.com/Etpmls/Etpmls-Micro"
+	"github.com/Etpmls/Etpmls-Micro/v2"
 )
 
 func main()  {

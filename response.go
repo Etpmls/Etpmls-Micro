@@ -2,7 +2,7 @@ package em
 
 import (
 	"encoding/json"
-	em_protobuf "github.com/Etpmls/Etpmls-Micro/protobuf"
+	em_protobuf "github.com/Etpmls/Etpmls-Micro/v2/protobuf"
 	"net/http"
 )
 

@@ -47,7 +47,7 @@ If your EM version differs from the latest version only by `A`, it means that th
 ## Installation
 Install with go mod
 ```go
-import "github.com/Etpmls/Etpmls-Micro"
+import "github.com/Etpmls/Etpmls-Micro/v2"
 ```
 
 ## Quick start
@@ -58,7 +58,7 @@ import "github.com/Etpmls/Etpmls-Micro"
 // Etpmls-Micro/example/main.go
 package main
 
-import "github.com/Etpmls/Etpmls-Micro"
+import "github.com/Etpmls/Etpmls-Micro/v2"
 
 func main()  {
 	var reg = em.Register{

@@ -3,7 +3,7 @@ package em
 import (
 	"context"
 	"errors"
-	em_protobuf "github.com/Etpmls/Etpmls-Micro/protobuf"
+	em_protobuf "github.com/Etpmls/Etpmls-Micro/v2/protobuf"
 	"google.golang.org/grpc"
 	"time"
 )

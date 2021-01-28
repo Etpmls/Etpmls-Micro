@@ -3,7 +3,7 @@
 package em
 
 import (
-	"github.com/Etpmls/Etpmls-Micro/define"
+	"github.com/Etpmls/Etpmls-Micro/v2/define"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"

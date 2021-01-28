@@ -2,8 +2,8 @@ package em
 
 import (
 	"errors"
-	"github.com/Etpmls/Etpmls-Micro/define"
-	em_library "github.com/Etpmls/Etpmls-Micro/library"
+	"github.com/Etpmls/Etpmls-Micro/v2/define"
+	em_library "github.com/Etpmls/Etpmls-Micro/v2/library"
 )
 
 func PanicIfMapValueEmpty(key string, m map[string]string) string {

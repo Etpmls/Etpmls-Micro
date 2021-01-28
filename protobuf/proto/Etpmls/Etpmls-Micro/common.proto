@@ -1,6 +1,6 @@
 syntax = "proto3";
 package em_protobuf;
-option go_package = "github.com/Etpmls/Etpmls-Micro/protobuf;em_protobuf";
+option go_package = "github.com/Etpmls/Etpmls-Micro/v2/protobuf;em_protobuf";
 
 message Empty {}
 
