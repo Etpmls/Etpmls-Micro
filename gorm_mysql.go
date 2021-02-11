@@ -42,7 +42,7 @@ func (this *Register) RunDatabase() {
 
 	err = DB.AutoMigrate(this.DatabaseMigrate...)
 	if err != nil {
-		LogInfo.AutoOutputDebug("Failed to create database!", err)
+		LogInfo.OutputSimplePath("Failed to create database!", err)
 	}
 
 }
