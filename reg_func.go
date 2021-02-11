@@ -170,7 +170,7 @@ func defaultHandleRpcErrorFunc(rcpStatusCode codes.Code, code string, message st
 	// 如果开启使用HTTP CODE 代替系统的默认CODE
 	e, err1 := Kv.ReadKey(define.KvAppUseHttpCode)
 	if err1 != nil {
-		LogInfo.OutputSimplePath("[Default: " + define.DefaultAppUseHttpCode + "]", err)
+		LogInfo.OutputSimplePath("[Default: " + define.DefaultAppUseHttpCode + "]", err1)
 		e = define.DefaultAppUseHttpCode
 	}
 	if strings.ToLower(e) != "true" {

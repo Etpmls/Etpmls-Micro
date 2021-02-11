@@ -64,6 +64,7 @@ type Interface_Log interface {
 // 验证码接口
 type Interface_Captcha interface {
 	Verify(string, string) bool
+	VerifyV2(string, string) (bool,[]byte)
 }
 
 // Validator interface

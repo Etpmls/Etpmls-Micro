@@ -1,6 +1,7 @@
 app/key: (Automatically generated, the apps that communicate with each other should be consistent)
 captcha/enable:true (true/false)
 captcha/secret: (Your google captcha secret)
+captcha/host: (Default: www.google.com)
 circuit-breaker/enable:true (true/false)
 i18n/enable:true (true/false)
 i18n/language/en.toml: (Keep consistent with the content of file/en.toml)

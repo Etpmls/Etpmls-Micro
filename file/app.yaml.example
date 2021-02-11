@@ -1,0 +1,7 @@
+kv:
+  address:
+    - "192.168.1.100:8500"
+  token: "123456"
+service:
+  rpc-id: "MyRpcService-1"
+  rpc-name: "MyRpcService"
