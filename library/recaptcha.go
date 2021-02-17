@@ -74,6 +74,7 @@ func (this *recaptcha) Verify(secret string, response string) bool {
 // 验证验证码的id及内容是否关联
 func (this *recaptcha) VerifyV2(secret string, response string) (bool, []byte) {
 	var tmout time.Duration
+	// TODO: 方法需要优化，注释需要优化，不配置timeout本地测试会超时
 	pair, _, err := kv.Get(define.KvCaptchaTimeout, nil)
 	if err != nil || pair == nil {
 		Instance_Logrus.Error(err)
