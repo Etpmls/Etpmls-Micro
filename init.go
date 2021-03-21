@@ -127,6 +127,10 @@ func (this *Register) Init() {
 	// Init service discovery
 	this.initServiceDiscovery(timeout)
 
+	/*
+		If the user registers a custom method to implement the interface, then the interface will use the user-registered custom method to override the default method
+		如果用户注册了自定义方法实现了接口，那么接口将使用用户注册的自定义方法，覆盖默认方法
+	*/
 	// Init jwt token
 	if this.OverrideInitJwtToken != nil {
 		JwtToken = *this.OverrideInitJwtToken()
@@ -418,43 +422,43 @@ func (this *Register) checkFeatureEnable(feature []string) {
 	for _, v := range feature {
 		if v == EnableDatabase {
 			e, err := Kv.ReadKey(define.MakeServiceConfField(library.Config.Service.RpcName, define.KvServiceDatabaseEnable))
-			if err != nil || strings.ToLower(e) != "true" {
+			if err != nil || (strings.ToLower(e) != "true" && strings.ToLower(e) != "false") {
 				panic("Please enable " + define.MakeServiceConfField(library.Config.Service.RpcName, define.KvServiceDatabaseEnable))
 			}
 		}
 		if v == EnableValidator {
 			e, err := Kv.ReadKey(define.KvValidatorEnable)
-			if err != nil || strings.ToLower(e) != "true" {
+			if err != nil || (strings.ToLower(e) != "true" && strings.ToLower(e) != "false") {
 				panic("Please enable validator/enable")
 			}
 		}
 		if v == EnableI18n {
 			e, err := Kv.ReadKey(define.KvI18nEnable)
-			if err != nil || strings.ToLower(e) != "true" {
+			if err != nil || (strings.ToLower(e) != "true" && strings.ToLower(e) != "false") {
 				panic("Please enable i18n/enable")
 			}
 		}
 		if v == EnableCircuitBreaker {
 			e, err := Kv.ReadKey(define.KvCircuitBreakerEnable)
-			if err != nil || strings.ToLower(e) != "true" {
+			if err != nil || (strings.ToLower(e) != "true" && strings.ToLower(e) != "false") {
 				panic("Please enable circuit-breaker/enable")
 			}
 		}
 		if v == EnableCache {
 			e, err := Kv.ReadKey(define.KvCacheEnable)
-			if err != nil || strings.ToLower(e) != "true" {
+			if err != nil || (strings.ToLower(e) != "true" && strings.ToLower(e) != "false") {
 				panic("Please enable cache/enable")
 			}
 		}
 		if v == EnableServiceDiscovery {
 			e, err := Kv.ReadKey(define.KvServiceDiscoveryEnable)
-			if err != nil || strings.ToLower(e) != "true" {
+			if err != nil || (strings.ToLower(e) != "true" && strings.ToLower(e) != "false") {
 				panic("Please enable service-discovery/enable")
 			}
 		}
 		if v == EnableCaptcha {
 			e, err := Kv.ReadKey(define.KvCaptchaEnable)
-			if err != nil || strings.ToLower(e) != "true" {
+			if err != nil || (strings.ToLower(e) != "true" && strings.ToLower(e) != "false") {
 				panic("Please enable captcha/enable")
 			}
 		}
