@@ -2,7 +2,7 @@ package em
 
 import (
 	"context"
-	"github.com/Etpmls/Etpmls-Micro/v2/library"
+	em_library "github.com/Etpmls/Etpmls-Micro/v3/library"
 	"time"
 )
 
@@ -12,7 +12,7 @@ var (
 	Log              = Interface_Log(em_library.NewLogrus())
 	JwtToken         = Interface_Jwt(em_library.NewJwtGo())
 	/* Optional */
-	I18n             = Interface_I18n(em_library.NewGoI18n())
+	Translate        = Interface_Translate(em_library.NewGoI18n())
 	Validator        = Interface_Validator(em_library.NewValidator())
 	CircuitBreaker   = Interface_CircuitBreaker(em_library.NewHystrixGo())
 	Cache            = Interface_Cache(em_library.NewRedis())
@@ -31,7 +31,7 @@ type Interface_Jwt interface {
 
 // i18n interface
 // i18n 接口
-type Interface_I18n interface {
+type Interface_Translate interface {
 	TranslateString(str string, language string) string
 	TranslateFromRequest(ctx context.Context, str string) string
 }
@@ -63,8 +63,7 @@ type Interface_Log interface {
 // Captcha interface
 // 验证码接口
 type Interface_Captcha interface {
-	Verify(string, string) bool
-	VerifyV2(string, string) (bool,[]byte)
+	Verify(string) (bool,[]byte)
 }
 
 // Validator interface

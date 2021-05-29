@@ -5,9 +5,6 @@ import (
 	"errors"
 	"math/rand"
 	"net/url"
-	"path/filepath"
-	"runtime"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -93,60 +90,6 @@ func ChangeTypeV2(in interface{}, out interface{}) (error) {
 		return err
 	}
 	return nil
-}
-
-// Message(or Error) with line number
-// 消息(或错误)带行号
-func MessageWithLineNum(msg string) string {
-	var list []string
-	for i := 1; i < 20; i++ {
-		_, file, line, ok := runtime.Caller(i)
-		if ok {
-			list = append(list, file+":"+strconv.Itoa(line))
-		} else {
-			break
-		}
-	}
-	return strings.Join(list, " => ") + " => Message: " + msg
-}
-func messageWithLineNum_Local(msg string) string {
-	_, file, _, _ := runtime.Caller(0)
-	dir := filepath.Dir(filepath.Dir(file))
-	sourceDir := strings.ReplaceAll(dir, "\\", "/")
-
-	var list []string
-	for i := 1; i < 20; i++ {
-		_, file, line, ok := runtime.Caller(i)
-		if ok && strings.HasPrefix(file, sourceDir) {
-			list = append(list, file+":"+strconv.Itoa(line))
-		} else {
-			break
-		}
-	}
-	return strings.Join(list, " => ") + " => Message: " + msg
-}
-// Message(or Error) with line number - Only one record
-// 消息(或错误)带行号 - 仅一条记录
-func MessageWithLineNum_OneRecord(msg string) string {
-	_, file, line, ok := runtime.Caller(1)
-	if ok {
-		return file+":"+strconv.Itoa(line) + " => Message: " + msg
-	}
-	return msg
-}
-// Message(or Error) with line number,Specify call level
-// 消息(或错误)带行号，指定调用层级
-func MessageWithLineNum_Advanced(msg string, level int, num int) string {
-	var list []string
-	for i := level + 1; i < level + 1 + num; i++ {
-		_, file, line, ok := runtime.Caller(i)
-		if ok {
-			list = append(list, file+":"+strconv.Itoa(line))
-		} else {
-			break
-		}
-	}
-	return strings.Join(list, " => ") + " => Message: " + msg
 }
 
 // Generate errors with both custom messages and error messages

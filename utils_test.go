@@ -10,5 +10,5 @@ func TestMessageWithLineNum_Advanced(t *testing.T)  {
 }
 
 func call()  {
-	fmt.Println(MessageWithLineNum_Advanced("Test",1,10))
+	fmt.Println(MessageWithLineNumAdvanced("Test",1,10))
 }

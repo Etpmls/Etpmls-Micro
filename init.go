@@ -1,94 +1,81 @@
 package em
 
 import (
-	"context"
 	"encoding/json"
-	"github.com/Etpmls/Etpmls-Micro/v2/define"
-	_ "github.com/Etpmls/Etpmls-Micro/v2/file"
-	library "github.com/Etpmls/Etpmls-Micro/v2/library"
-	em_protobuf "github.com/Etpmls/Etpmls-Micro/v2/protobuf"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/Etpmls/Etpmls-Micro/v3/define"
+	_ "github.com/Etpmls/Etpmls-Micro/v3/file"
+	em_library "github.com/Etpmls/Etpmls-Micro/v3/library"
 	"github.com/hashicorp/consul/api"
-	"github.com/joho/godotenv"
-	"github.com/rs/cors"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
+	"net"
+	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 )
 
-const (
-	EnableDatabase = "Database"
-	EnableValidator = "Validator"
-	EnableI18n = "I18n"
-	EnableCircuitBreaker = "CircuitBreaker"
-	EnableCache = "Cache"
-	EnableServiceDiscovery = "ServiceDiscovery"
-	EnableCaptcha = "Captcha"
+var (
+	Reg *Register
+	//Judge whether the initialization is completed, if the initialization is not completed, use InitLog to record the log, otherwise use LogError to record the log
+	// 判断是否初始化完成，如果初始化未完成，使用InitLog记录日志，否则使用LogError记录日志
+	initFinished bool
 )
 
-var Reg *Register
-
-
 type Register struct {
-	// APP
 	// Version Infomation
 	// main.exe -version
-	AppVersion            map[string]string
-	AppHandleExitFunc     func()
-	AppEnabledFeatureName []string
-	// Rpc
-	RpcServiceFunc       func(*grpc.Server)
-	RpcMiddleware        func() *grpc.Server
-	RpcEndpoint          func() *runtime.ServeMux
-	RpcReturnSuccessFunc func(code string, message string, data interface{}) (*em_protobuf.Response, error)
-	RpcReturnErrorFunc   func(rcpStatusCode codes.Code, code string, message string, data interface{}, err error) (*em_protobuf.Response, error)
-	// HTTP
-	HttpServiceFunc       func(ctx context.Context, mux *runtime.ServeMux, grpcServerEndpoint *string, opts []grpc.DialOption) error
-	HttpRouteFunc         func(mux *runtime.ServeMux)
-	HttpCorsOptions       func() cors.Options
-	HttpReturnSuccessFunc func(code string, message string, data interface{}) ([]byte, error)
-	HttpReturnErrorFunc   func(code string, message string, data interface{}, err error) ([]byte, error)
-	// Custom Server
-	CustomServerFunc                               []func()
-	CustomServerServiceRegisterFunc                func() error
-	CustomServerServiceExitFunc                    func() error
-	// Database
-	DatabaseMigrate           []interface{}
-	DatabaseInsertInitialData []func()
+	Version map[string]string
 
-	OverrideInitYaml		func() *library.Configuration
-	OverrideInitKv	func() *Interface_KV
-	OverrideInitLog	func(level string) *Interface_Log
-	OverrideInitCache	func(enableCache bool, address string, password string, db int) *Interface_Cache
-	OverrideInitValidator func() *Interface_Validator
-	// map [*.en.json](key) {"langKey":"langValue"}(value)
-	OverrideInitI18n func(langMap map[string]string) *Interface_I18n
-	OverrideInitCircuitBreaker func(time.Duration) *Interface_CircuitBreaker
-	OverrideInitServiceDiscovery func(*library.ServiceConfig) *Interface_ServiceDiscovery
-	OverrideInitJwtToken func() *Interface_Jwt
-	OverrideInitCaptcha func() *Interface_Captcha
-	stoprun				  bool
-	initFinished bool
+	// Set the enabled function to prevent the program from using an empty interface to report a nil error.
+	// If during the initialization process, it is checked that the relevant parameters are not configured in the KV table, it will panic the program and prompt the user to configure the information
+	// 设置启用的功能，防止程序使用空的接口出现nil报错。
+	// 如果在初始化过程中，检查到KV表中未配置相关参数，会panic程序并提示要求用户配置的信息
+	EnabledFeature []string
+
+	// Register RPC service and middleware
+	// 注册RPC服务和中间件
+	RegisterService    func(*grpc.Server)
+	RegisterMiddleware func() *grpc.Server
+
+	// Override Interface & Function
+	// 重写接口和函数
+	OverrideInterface OverrideInterface
+	OverrideFunction OverrideFunction
 }
 
+type OverrideInterface struct {
+	Yaml		func() *em_library.Configuration
+	Kv	func() *Interface_KV
+	Log	func(level string) *Interface_Log
+	Cache	func(enableCache bool, address string, password string, db int) *Interface_Cache
+	Validator func() *Interface_Validator
+	Translate func(langMap map[string]string) *Interface_Translate 	// map [*.en.json](key) {"langKey":"langValue"}(value)
+	CircuitBreaker func(time.Duration) *Interface_CircuitBreaker
+	ServiceDiscovery func(*em_library.ServiceConfig) *Interface_ServiceDiscovery
+	JwtToken func() *Interface_Jwt
+	Captcha func() *Interface_Captcha
+}
 
+type OverrideFunction struct {
+	HandleExitFunc func()
+}
 
 func (this *Register) Init() {
-	// Version info
-	switch  {
-	case init_version(this):
-		this.stoprun = true
+	// Print Version info
+	if init_version(this) {
 		VersionPrint()
-		return
-	default:
+		os.Exit(1)
 	}
 
+	// The configuration is registered in global variables for easy program reference
+	// 配置注册到全局变量中，方便程序引用
 	Reg = this
 
 	// Write log to File
-	i := library.NewInit()
+	// 写日志到文件中
+	i := em_library.NewInit()
 	i.Start()
 	defer i.Close()
 
@@ -105,16 +92,16 @@ func (this *Register) Init() {
 	this.initValidator()
 
 	// Init I18n
-	this.initI18n()
+	this.initTranslate()
 
-	t, err := Kv.ReadKey(define.KvAppCommunicationTimeout)
+	t, err := Kv.ReadKey(em_define.KvAppCommunicationTimeout)
 	if err != nil {
-		library.InitLog.Println("[INFO][DEFAULT: " + define.DefaultAppCommunicationTimeout + "]", define.KvAppCommunicationTimeout, " is not configured!")
-		t = define.DefaultAppCommunicationTimeout
+		em_library.InitLog.Println("[INFO][DEFAULT: " +em_define.DefaultAppCommunicationTimeout+ "]", em_define.KvAppCommunicationTimeout, " is not configured!")
+		t = em_define.DefaultAppCommunicationTimeout
 	}
 	timeout, err := time.ParseDuration(t)
 	if err != nil {
-		library.InitLog.Println("[INFO]","The format of " , define.KvAppCommunicationTimeout, " is incorrect!")
+		em_library.InitLog.Println("[INFO]","The format of " , em_define.KvAppCommunicationTimeout, " is incorrect!")
 		return
 	}
 
@@ -132,285 +119,199 @@ func (this *Register) Init() {
 		如果用户注册了自定义方法实现了接口，那么接口将使用用户注册的自定义方法，覆盖默认方法
 	*/
 	// Init jwt token
-	if this.OverrideInitJwtToken != nil {
-		JwtToken = *this.OverrideInitJwtToken()
+	if this.OverrideInterface.JwtToken != nil {
+		JwtToken = *this.OverrideInterface.JwtToken()
 	}
 	// Init captcha
-	if this.OverrideInitCaptcha != nil {
-		Captcha = *this.OverrideInitCaptcha()
+	if this.OverrideInterface.Captcha != nil {
+		Captcha = *this.OverrideInterface.Captcha()
 	}
 
 	// Check whether the function is turned on to prevent interface nil during operation
 	// 检查功能是否开启，防止运行期间出现接口nil的情况
-	this.checkFeatureEnable(this.AppEnabledFeatureName)
+	this.checkFeatureEnable(this.EnabledFeature)
 
-	Micro.Config = &library.Config
-
-
+	Micro.Config = &em_library.Config
 
 	// Generate key
 	this.generateKey()
 
-	Reg.initFinished = true
+	// Complete initialization
+	// 完成初始化
+	initFinished = true
 }
 
 func (this *Register) Run()  {
-	// Only print version info
-	if this.stoprun {
-		return
-	}
-
-	dbEnable, err := Kv.ReadKey(define.MakeServiceConfField(library.Config.Service.RpcName, define.KvServiceDatabaseEnable))
-	if err != nil || strings.ToLower(dbEnable) != "true" {
-		library.InitLog.Println("[WARNING]", define.MakeServiceConfField(library.Config.Service.RpcName, define.KvServiceDatabaseEnable), " is not configured or not enable!!")
-	} else {
-		// Init Database
-		this.RunDatabase()
-		// Insert database initial data
-		this.InsertDataToDatabase()
-	}
-
-
 	// Default Func
-	if this.RpcReturnSuccessFunc == nil {
-		this.RpcReturnSuccessFunc = defaultHandleRpcSuccessFunc
+	if this.RegisterMiddleware == nil {
+		this.RegisterMiddleware = defaultGrpcMiddlewareFunc
 	}
-	if this.RpcReturnErrorFunc == nil {
-		this.RpcReturnErrorFunc = defaultHandleRpcErrorFunc
-	}
-	if this.HttpReturnSuccessFunc == nil {
-		this.HttpReturnSuccessFunc = defaultHandleHttpSucessFunc
-	}
-	if this.HttpReturnErrorFunc == nil {
-		this.HttpReturnErrorFunc = defaultHandleHttpErrorFunc
-	}
-	if this.RpcMiddleware == nil {
-		this.RpcMiddleware = defaultGrpcMiddlewareFunc
-	}
-	if this.HttpCorsOptions == nil {
-		this.HttpCorsOptions = defaultCorsOptions
-	}
-	if this.RpcEndpoint == nil {
-		this.RpcEndpoint = defaultRegisterEndpoint
-	}
-	if this.AppHandleExitFunc == nil {
-		this.AppHandleExitFunc = defaultHandleExit
+	if this.OverrideFunction.HandleExitFunc == nil {
+		this.OverrideFunction.HandleExitFunc = defaultHandleExit
 	}
 
 	// Rpc Server
 	go this.runGrpcServer()
-	// Http Server
-	if this.HttpServiceFunc != nil {
-		go this.runHttpServer()
-	}
-	// Other Service
-	if this.CustomServerFunc != nil {
-		for _, v := range this.CustomServerFunc {
-			go v()
-		}
-	}
 
 	this.monitorExit()
 }
 
-// Insert database initial data
-// 插入数据库初始数据
-func (this *Register) InsertDataToDatabase()  {
-	env, err := godotenv.Read("./.env")
-	if err != nil {
-		library.Instance_Logrus.Error(err)
-		return
-	}
-
-	if _, ok := env["INIT_DATABASE"]; ok {
-		if strings.ToUpper(env["INIT_DATABASE"]) == "TRUE" {
-			for _, v := range this.DatabaseInsertInitialData {
-				v()
-			}
-			env["INIT_DATABASE"] = "FALSE"
-		}
-	}
-
-	err = godotenv.Write(env, "./.env")
-	if err != nil {
-		library.Instance_Logrus.Error(err)
-		return
-	}
-}
-
 func (this *Register) logAndChangeJsonFormatIfMapValueEmpty(key string, m map[string]string) string {
 	if len(m[key]) == 0 {
-		library.InitLog.Println("[WARNING]", key, " is not configured!")
+		em_library.InitLog.Println("[WARNING]", key, " is not configured!")
 	}
 	return IfEmptyChangeJsonFormat(m[key])
 }
 
 func (this *Register) logIfMapValueEmpty(key string, m map[string]string) string {
 	if len(m[key]) == 0 {
-		library.InitLog.Println("[WARNING]", key, " is not configured!")
+		em_library.InitLog.Println("[WARNING]", key, " is not configured!")
 	}
 	return m[key]
 }
 
 func (this *Register) initYaml() {
-	if this.OverrideInitYaml == nil {
-		library.Init_Yaml()
+	if this.OverrideInterface.Yaml == nil {
+		em_library.Init_Yaml()
 	} else {
-		library.Config = *this.OverrideInitYaml()
+		em_library.Config = *this.OverrideInterface.Yaml()
 	}
 }
 
 func (this *Register) initKv() {
-	if len(library.Config.Kv.Address) == 0 {
-		library.InitLog.Println("[ERROR]", "Kv address is not configured!")
+	if len(em_library.Config.Kv.Address) == 0 {
+		em_library.InitLog.Println("[ERROR]", "Kv address is not configured!")
 		panic("Kv address is not configured!")
 	}
-	idx := GetRandomNumberByLength(len(library.Config.Kv.Address))
-	if this.OverrideInitKv == nil {
+	idx := GetRandomNumberByLength(len(em_library.Config.Kv.Address))
+	if this.OverrideInterface.Kv == nil {
 		var conf = api.Config{
-			Address:    library.Config.Kv.Address[idx],
-			Token:      library.Config.Kv.Token,
+			Address:    em_library.Config.Kv.Address[idx],
+			Token:      em_library.Config.Kv.Token,
 		}
-		library.InitConsulKv(&conf)
+		em_library.InitConsulKv(&conf)
 	} else {
-		Kv = *this.OverrideInitKv()
+		Kv = *this.OverrideInterface.Kv()
 	}
 }
 
 func (this *Register) initLog() {
-	level, err := Kv.ReadKey(define.KvLogLevel)
+	level, err := Kv.ReadKey(em_define.KvLogLevel)
 	if err != nil {
-		library.InitLog.Println("[INFO][DEFAULT: " + define.DefaultLogLevel + "]", define.KvLogLevel, " is not configured!")
+		em_library.InitLog.Println("[INFO][DEFAULT: " +em_define.DefaultLogLevel+ "]", em_define.KvLogLevel, " is not configured!")
 		level = "info"
 	}
-	if this.OverrideInitLog == nil {
-		library.Init_Logrus(level)
+	if this.OverrideInterface.Log == nil {
+		em_library.Init_Logrus(level)
 	} else {
-		Log = *this.OverrideInitLog(level)
+		Log = *this.OverrideInterface.Log(level)
 	}
 }
 
 func (this *Register) initValidator() {
-	validatorEnable, err := Kv.ReadKey(define.KvValidatorEnable)
+	validatorEnable, err := Kv.ReadKey(em_define.KvValidatorEnable)
 	if err != nil || strings.ToLower(validatorEnable) != "true" {
-		library.InitLog.Println("[WARNING]", define.KvValidatorEnable, " is not configured or not enable!")
+		em_library.InitLog.Println("[WARNING]", em_define.KvValidatorEnable, " is not configured or not enable!")
 	} else {
-		if this.OverrideInitValidator == nil {
-			library.Init_Validator()
+		if this.OverrideInterface.Validator == nil {
+			em_library.Init_Validator()
 		} else {
-			Validator = *this.OverrideInitValidator()
+			Validator = *this.OverrideInterface.Validator()
 		}
 	}
 }
 
-func (this *Register) initI18n() {
+func (this *Register) initTranslate() {
 	// - Check if i18n is enable
-	i18nEnable, err := Kv.ReadKey(define.KvI18nEnable)
+	i18nEnable, err := Kv.ReadKey(em_define.KvTranslateEnable)
 	if err != nil || strings.ToLower(i18nEnable) != "true" {
-		library.InitLog.Println("[WARNING]", define.KvI18nEnable, " is not configured or not enable!")
+		em_library.InitLog.Println("[WARNING]", em_define.KvTranslateEnable, " is not configured or not enable!")
 	} else {
-		i18nMap, err := Kv.List(define.KvI18nLanguage)
+		i18nMap, err := Kv.List(em_define.KvTranslateLanguage)
 		if err != nil || len(i18nMap) == 0 {
-			library.InitLog.Println("[ERROR]", define.KvI18nLanguage, " is not configured!")
-			panic("[ERROR]"+ define.KvI18nLanguage+ " is not configured!")
+			em_library.InitLog.Println("[ERROR]", em_define.KvTranslateLanguage, " is not configured!")
+			panic("[ERROR]"+ em_define.KvTranslateLanguage + " is not configured!")
 		}
-		if this.OverrideInitI18n == nil {
-			library.Init_GoI18n(i18nMap)
+		if this.OverrideInterface.Translate == nil {
+			em_library.Init_GoI18n(i18nMap)
 		} else {
-			I18n = *this.OverrideInitI18n(i18nMap)
+			Translate = *this.OverrideInterface.Translate(i18nMap)
 		}
 	}
 }
 
 func (this *Register) initCircuitBreaker(timeout time.Duration) {
-	cbEnable, err := Kv.ReadKey(define.KvCircuitBreakerEnable)
+	cbEnable, err := Kv.ReadKey(em_define.KvCircuitBreakerEnable)
 	if err != nil || strings.ToLower(cbEnable) != "true" {
-		library.InitLog.Println("[WARNING]", define.KvCircuitBreakerEnable, " is not configured or not enable!")
+		em_library.InitLog.Println("[WARNING]", em_define.KvCircuitBreakerEnable, " is not configured or not enable!")
 	} else {
-		if this.OverrideInitCircuitBreaker == nil {
-			library.Init_HystrixGo(timeout)
+		if this.OverrideInterface.CircuitBreaker == nil {
+			em_library.Init_HystrixGo(timeout)
 		} else {
-			CircuitBreaker = *this.OverrideInitCircuitBreaker(timeout)
+			CircuitBreaker = *this.OverrideInterface.CircuitBreaker(timeout)
 		}
 	}
 }
 
 func (this *Register) initCache() {
 	// - if enable
-	m, err := Kv.List(define.KvCache)
+	m, err := Kv.List(em_define.KvCache)
 	if err != nil {
-		library.InitLog.Println("[WARNING]", define.KvCache, " is not configured!")
-		library.InitLog.Println("[WARNING]", "Cache is not running")
+		em_library.InitLog.Println("[WARNING]", em_define.KvCache, " is not configured!")
+		em_library.InitLog.Println("[WARNING]", "Cache is not running")
 	}
-	if strings.ToLower(m[define.KvCacheEnable]) == "true" {
-		cacheDbInt, err := strconv.Atoi(m[define.KvCacheDb])
+	if strings.ToLower(m[em_define.KvCacheEnable]) == "true" {
+		cacheDbInt, err := strconv.Atoi(m[em_define.KvCacheDb])
 		if err != nil {
-			library.InitLog.Println("[ERROR]", define.KvCacheDb, " is not number!")
-			panic("[ERROR]"+ define.KvCacheDb+ " is not number!")
+			em_library.InitLog.Println("[ERROR]", em_define.KvCacheDb, " is not number!")
+			panic("[ERROR]"+ em_define.KvCacheDb + " is not number!")
 		}
-		if len(m[define.KvCacheAddress]) == 0 {
-			library.InitLog.Println("[ERROR]", define.KvCacheAddress, " is not configured!")
-			panic("[ERROR]"+ define.KvCacheAddress+ " is not configured!")
+		if len(m[em_define.KvCacheAddress]) == 0 {
+			em_library.InitLog.Println("[ERROR]", em_define.KvCacheAddress, " is not configured!")
+			panic("[ERROR]"+ em_define.KvCacheAddress + " is not configured!")
 		}
 
-		if this.OverrideInitCache == nil {
-			library.Init_Redis(true, m[define.KvCacheAddress], m[define.KvCachePassword], cacheDbInt)
+		if this.OverrideInterface.Cache == nil {
+			em_library.Init_Redis(true, m[em_define.KvCacheAddress], m[em_define.KvCachePassword], cacheDbInt)
 		} else {
-			Cache = *this.OverrideInitCache(true, m[define.KvCacheAddress], m[define.KvCachePassword], cacheDbInt)
+			Cache = *this.OverrideInterface.Cache(true, m[em_define.KvCacheAddress], m[em_define.KvCachePassword], cacheDbInt)
 		}
 	}
 }
 
 func (this *Register) initServiceDiscovery(timeout time.Duration)  {
 	// - if enable
-	s, err := Kv.ReadKey(define.KvServiceDiscoveryEnable)
+	s, err := Kv.ReadKey(em_define.KvServiceDiscoveryEnable)
 	if err != nil || strings.ToLower(s) != "true" {
-		library.InitLog.Println("[WARNING]", define.KvServiceDiscoveryEnable, " is not configured or not enable!")
+		em_library.InitLog.Println("[WARNING]", em_define.KvServiceDiscoveryEnable, " is not configured or not enable!")
 	} else {
 		pkgConfig := api.DefaultConfig()
-		pkgConfig.Address = MustGetKvKey(define.KvServiceDiscoveryAddress)
+		pkgConfig.Address = MustGetKvKey(em_define.KvServiceDiscoveryAddress)
 		pkgConfig.WaitTime = timeout
-		pkgConfig.Token = library.Config.Kv.Token
+		pkgConfig.Token = em_library.Config.Kv.Token
 
 		// Set tags
-		rt, err := GetServiceKvKey(define.KvServiceRpcTag)
+		rt, err := GetServiceKvKey(em_define.KvServiceTag)
 		if err != nil {
 			rt = "[]"
 		}
-		ht, err := GetServiceKvKey(define.KvServiceHttpTag)
-		if err != nil {
-			ht = "[]"
-		}
-		var rTag, hTag []string
+
+		var rTag []string
 		_ = json.Unmarshal([]byte(rt), &rTag)
-		_ = json.Unmarshal([]byte(ht), &hTag)
 
-		var config = library.ServiceConfig{
-			Config:        pkgConfig,
-			RpcId:         library.Config.Service.RpcId,
-			RpcName:       library.Config.Service.RpcName,
-			RpcPort:       MustGetServiceIdKvKey(define.KvServiceRpcPort),
-			RpcTag:        rTag,
-			HttpId:        MustGetServiceIdKvKey(define.KvServiceHttpId),
-			HttpName:      MustGetServiceKvKey(define.KvServiceHttpName),
-			HttpPort:      MustGetServiceIdKvKey(define.KvServiceHttpPort),
-			HttpTag:       hTag,
-			Address:       MustGetServiceIdKvKey(define.KvServiceAddress),
-			CheckInterval: MustGetServiceKvKey(define.KvServiceCheckInterval),
-			CheckUrl:      MustGetServiceIdKvKey(define.KvServiceCheckUrl),
+		var config = em_library.ServiceConfig{
+			Config:  pkgConfig,
+			Id:      em_library.Config.Service.RpcId,
+			Name:    em_library.Config.Service.RpcName,
+			Port:    MustGetServiceIdKvKey(em_define.KvServicePort),
+			Tag:     rTag,
+			Address: MustGetServiceIdKvKey(em_define.KvServiceAddress),
 		}
 
-		if this.OverrideInitServiceDiscovery == nil {
-			library.Init_Consul(&config)
+		if this.OverrideInterface.ServiceDiscovery == nil {
+			em_library.Init_Consul(&config)
 		} else {
-			ServiceDiscovery = *this.OverrideInitServiceDiscovery(&config)
-		}
-
-		if this.CustomServerServiceRegisterFunc != nil {
-			err := this.CustomServerServiceRegisterFunc()
-			if err != nil {
-				go this.reRegisterCustomServerService()
-			}
+			ServiceDiscovery = *this.OverrideInterface.ServiceDiscovery(&config)
 		}
 
 	}
@@ -420,44 +321,38 @@ func (this *Register) initServiceDiscovery(timeout time.Duration)  {
 // 检查功能是否开启，防止运行期间出现接口nil的情况
 func (this *Register) checkFeatureEnable(feature []string) {
 	for _, v := range feature {
-		if v == EnableDatabase {
-			e, err := Kv.ReadKey(define.MakeServiceConfField(library.Config.Service.RpcName, define.KvServiceDatabaseEnable))
-			if err != nil || (strings.ToLower(e) != "true" && strings.ToLower(e) != "false") {
-				panic("Please enable " + define.MakeServiceConfField(library.Config.Service.RpcName, define.KvServiceDatabaseEnable))
-			}
-		}
-		if v == EnableValidator {
-			e, err := Kv.ReadKey(define.KvValidatorEnable)
+		if v == em_define.EnableValidator {
+			e, err := Kv.ReadKey(em_define.KvValidatorEnable)
 			if err != nil || (strings.ToLower(e) != "true" && strings.ToLower(e) != "false") {
 				panic("Please enable validator/enable")
 			}
 		}
-		if v == EnableI18n {
-			e, err := Kv.ReadKey(define.KvI18nEnable)
+		if v == em_define.EnableTranslate {
+			e, err := Kv.ReadKey(em_define.KvTranslateEnable)
 			if err != nil || (strings.ToLower(e) != "true" && strings.ToLower(e) != "false") {
 				panic("Please enable i18n/enable")
 			}
 		}
-		if v == EnableCircuitBreaker {
-			e, err := Kv.ReadKey(define.KvCircuitBreakerEnable)
+		if v == em_define.EnableCircuitBreaker {
+			e, err := Kv.ReadKey(em_define.KvCircuitBreakerEnable)
 			if err != nil || (strings.ToLower(e) != "true" && strings.ToLower(e) != "false") {
 				panic("Please enable circuit-breaker/enable")
 			}
 		}
-		if v == EnableCache {
-			e, err := Kv.ReadKey(define.KvCacheEnable)
+		if v == em_define.EnableCache {
+			e, err := Kv.ReadKey(em_define.KvCacheEnable)
 			if err != nil || (strings.ToLower(e) != "true" && strings.ToLower(e) != "false") {
 				panic("Please enable cache/enable")
 			}
 		}
-		if v == EnableServiceDiscovery {
-			e, err := Kv.ReadKey(define.KvServiceDiscoveryEnable)
+		if v == em_define.EnableServiceDiscovery {
+			e, err := Kv.ReadKey(em_define.KvServiceDiscoveryEnable)
 			if err != nil || (strings.ToLower(e) != "true" && strings.ToLower(e) != "false") {
 				panic("Please enable service-discovery/enable")
 			}
 		}
-		if v == EnableCaptcha {
-			e, err := Kv.ReadKey(define.KvCaptchaEnable)
+		if v == em_define.EnableCaptcha {
+			e, err := Kv.ReadKey(em_define.KvCaptchaEnable)
 			if err != nil || (strings.ToLower(e) != "true" && strings.ToLower(e) != "false") {
 				panic("Please enable captcha/enable")
 			}
@@ -466,24 +361,46 @@ func (this *Register) checkFeatureEnable(feature []string) {
 }
 
 func (this *Register) generateKey() {
-	k, err := Kv.ReadKey(define.KvAppKey)
+	k, err := Kv.ReadKey(em_define.KvAppKey)
 	if err != nil || len(k) == 0 {
-		err := Kv.CrateOrUpdateKey(define.KvAppKey, GenerateRandomString(50))
+		err := Kv.CrateOrUpdateKey(em_define.KvAppKey, GenerateRandomString(50))
 		if err != nil {
 			panic(err)
 		}
 	}
 }
 
-// When initial registration fails, automatically retry registration
-// 当初始化注册失败时，自动重试注册
-func (this *Register) reRegisterCustomServerService() {
-	for {
-		time.Sleep(time.Second * 5)
-		err := this.CustomServerServiceRegisterFunc()
-		if err == nil {
-			library.InitLog.Println("[INFO]", "Custom Server Service registered successfully!")
-			break
-		}
+/*
+	[GRPC]
+*/
+// https://github.com/grpc/grpc-go/blob/15a78f19307d5faf10cfdd9d4e664c65a387cbd1/examples/helloworld/greeter_server/main.go#L46
+func (this *Register) runGrpcServer()  {
+	k, err := Kv.ReadKey(em_define.GetPathByFieldName(em_library.Config.Service.RpcId, em_define.KvServicePort))
+	if err != nil {
+		LogInfo.Path(err)
+		panic(err)
 	}
+
+	lis, err := net.Listen("tcp", ":" + k)
+	if err != nil {
+		LogFatal.New("failed to listen: " + err.Error())
+	}
+
+	s := this.RegisterMiddleware()
+
+	// Register Service
+	// 注册服务
+	this.RegisterService(s)
+
+	if err := s.Serve(lis); err != nil {
+		LogFatal.New("failed to serve: " + err.Error())
+	}
+}
+
+
+func (this *Register) monitorExit()  {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGTERM)
+	<-c
+	this.OverrideFunction.HandleExitFunc()
 }

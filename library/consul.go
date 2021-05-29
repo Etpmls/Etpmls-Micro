@@ -10,21 +10,12 @@ import (
 )
 
 type ServiceConfig struct {
-	Config   *api.Config
-	RpcId    string
-	RpcName  string
-	RpcPort  string
-	RpcTag   []string
-	HttpId   string
-	HttpName string
-	HttpPort string
-	HttpTag  []string
-	Address  string
-	/*
-		Health check
-	*/
-	CheckInterval string
-	CheckUrl      string
+	Config  *api.Config
+	Id      string
+	Name    string
+	Port    string
+	Tag     []string
+	Address string
 }
 
 var config *ServiceConfig
@@ -85,47 +76,25 @@ func NewConsul() *consul {
 // 注册服务
 func (this *consul) RegistrationService() error {
 	// string -> int
-	rpcPort, err := strconv.Atoi(config.RpcPort)
+	rpcPort, err := strconv.Atoi(config.Port)
 	if err != nil {
 		return errors.New("rpcPort is not a int type! Error:" + err.Error())
-	}
-	httpPort, err := strconv.Atoi(config.HttpPort)
-	if err != nil {
-		return errors.New("httpPort is not a int type! Error:" + err.Error())
-	}
-
-	// Service Check
-	Check := api.AgentServiceCheck{
-		Interval: config.CheckInterval,
-		HTTP:     "http://" + config.Address + ":" + config.HttpPort + config.CheckUrl,
 	}
 
 	// Configuration service
 	conf := api.AgentServiceRegistration{
 		Address:   config.Address,
-		Check: &Check,
 	}
 
 	rpcConf := conf
-	rpcConf.ID = config.RpcId
-	rpcConf.Name = config.RpcName
-	rpcConf.Tags = config.RpcTag
+	rpcConf.ID = config.Id
+	rpcConf.Name = config.Name
+	rpcConf.Tags = config.Tag
 	rpcConf.Port = rpcPort
-
-	httpConf := conf
-	httpConf.ID = config.HttpId
-	httpConf.Name = config.HttpName
-	httpConf.Tags = config.HttpTag
-	httpConf.Port = httpPort
 
 	err = Instance_Consul.Agent().ServiceRegister(&rpcConf)
 	if err != nil {
 		return errors.New("Consul RPC Service registration failed! Error:" + err.Error())
-	}
-
-	err = Instance_Consul.Agent().ServiceRegister(&httpConf)
-	if err != nil {
-		return errors.New("Consul HTTP Service registration failed! Error:" + err.Error())
 	}
 
 	return nil
@@ -134,14 +103,9 @@ func (this *consul) RegistrationService() error {
 // Cancel Service
 // 取消服务
 func (this *consul) CancelService() error {
-	err := Instance_Consul.Agent().ServiceDeregister(config.RpcId)
+	err := Instance_Consul.Agent().ServiceDeregister(config.Id)
 	if err != nil {
 		InitLog.Println("[ERROR]", "Cancel Consul RPC service failed!", " Error:", err)
-		return err
-	}
-	err = Instance_Consul.Agent().ServiceDeregister(config.HttpId)
-	if err != nil {
-		InitLog.Println("[ERROR]", "Cancel Consul HTTP service failed!", " Error:", err)
 		return err
 	}
 	return nil

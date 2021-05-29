@@ -1,12 +1,13 @@
-package define
+package em_define
 
+// Define KV path
+// 定义KV路径
 const (
 	/* App */
 	KvApp                     = "app/"
 	KvAppCommunicationTimeout = "app/communication-timeout"
 	KvAppKey                  = "app/key"
 	KvAppTokenExpirationTime  = "app/token-expiration-time"
-	KvAppUseHttpCode          = "app/use-http-code"
 	/* Log */
 	KvLog                    = "log/"
 	KvLogLevel               = "log/level"
@@ -20,8 +21,8 @@ const (
 	KvLogOutputMethodFatal   = "log/output-method/fatal"
 	KvLogOutputMethodPanic   = "log/output-method/panic"
 	/* I18n */
-	KvI18nEnable = "i18n/enable"
-	KvI18nLanguage = "i18n/language/"
+	KvTranslateEnable = "translate/enable"
+	KvTranslateLanguage = "translate/language/"
 	/* Validator */
 	KvValidatorEnable = "validator/enable"
 	/* Circuit Breaker */
@@ -37,26 +38,10 @@ const (
 	KvServiceDiscoveryEnable  = "service-discovery/enable"
 	KvServiceDiscoveryAddress = "service-discovery/address"
 	/* Service */
-	KvService = "service/"
-	KvServiceRpcPort = "/rpc-port"
-	KvServiceRpcTag = "/rpc-tag"
-	KvServiceHttpId = "/http-id"
-	KvServiceHttpName = "/http-name"
-	KvServiceHttpPort = "/http-port"
-	KvServiceHttpTag = "/http-tag"
+	KvService        = "service/"
+	KvServicePort    = "/port"
+	KvServiceTag     = "/tag"
 	KvServiceAddress = "/address"
-	KvServiceCheckInterval = "/check-interval"
-	KvServiceCheckUrl = "/check-url"
-	// Service Database
-	KvServiceDatabase         = "/database/"		// /service/rpcName/database/
-	KvServiceDatabaseEnable   = "/database/enable"
-	KvServiceDatabaseHost     = "/database/host"
-	KvServiceDatabaseUser     = "/database/user"
-	KvServiceDatabasePassword = "/database/password"
-	KvServiceDatabaseDbName   = "/database/dbname"
-	KvServiceDatabasePort     = "/database/port"
-	KvServiceDatabaseTimezone = "/database/timezone"
-	KvServiceDatabasePrefix   = "/database/prefix"
 	/* Captcha */
 	KvCaptcha = "captcha/"
 	KvCaptchaEnable = "captcha/enable"
@@ -65,6 +50,8 @@ const (
 	KvCaptchaHost = "captcha/host"
 )
 
-func MakeServiceConfField(serviceName, fieldName string) string {
+// Obtain the full path of the KV service according to the service name and field name
+// 根据服务名和字段名获取KV服务完整路径
+func GetPathByFieldName(serviceName, fieldName string) string {
 	return KvService + serviceName + fieldName
 }

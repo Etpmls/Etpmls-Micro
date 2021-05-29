@@ -22,6 +22,8 @@ func NewValidator() *validator {
 }
 
 
+// Verify that the structure conforms to the go-playground/validator/v10 specification
+// 验证符合go-playground/validator/v10规范的结构体
 func (this *validator) ValidateStruct(s interface{}) error {
 	err := Instance_Validator.Struct(s)
 	if err != nil {
@@ -30,6 +32,10 @@ func (this *validator) ValidateStruct(s interface{}) error {
 	return nil
 }
 
+// Convert the request to a specified structure verification
+// my_struct needs to pass a pointer
+// 把请求转换为指定结构体验证
+// my_struct需要传递指针
 func (this *validator) Validate(request interface{}, my_struct interface{}) error {
 	err := this.utils_ChangeType(request, my_struct)
 	if err != nil {

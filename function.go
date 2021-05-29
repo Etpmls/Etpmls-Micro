@@ -2,21 +2,32 @@ package em
 
 import (
 	"errors"
-	"github.com/Etpmls/Etpmls-Micro/v2/define"
-	em_library "github.com/Etpmls/Etpmls-Micro/v2/library"
+	"github.com/Etpmls/Etpmls-Micro/v3/define"
+	em_library "github.com/Etpmls/Etpmls-Micro/v3/library"
+	"os"
+	"strings"
 )
+
+// Whether it is a DEBUG environment
+// 是否为DEBUG环境
+func IsDebug() bool {
+	if strings.ToUpper(os.Getenv("DEBUG")) == "TRUE" {
+		return true
+	}
+	return false
+}
 
 func PanicIfMapValueEmpty(key string, m map[string]string) string {
 	if len(m[key]) == 0 {
-		LogError.OutputFullPath("[ERROR]", key, " is not configured!")
+		LogError.FullPath("[ERROR]", key, " is not configured!")
 		panic(("[ERROR]"+ key+ " is not configured!"))
 	}
 	return m[key]
 }
 
 func MustGetServiceKvKey(key string) string {
-	nameKey := define.MakeServiceConfField(em_library.Config.Service.RpcName, key)
-	idKey := define.MakeServiceConfField(em_library.Config.Service.RpcId, key)
+	nameKey := em_define.GetPathByFieldName(em_library.Config.Service.RpcName, key)
+	idKey := em_define.GetPathByFieldName(em_library.Config.Service.RpcId, key)
 
 	// Get key
 	idValue, err := Kv.ReadKey(idKey)
@@ -29,17 +40,17 @@ func MustGetServiceKvKey(key string) string {
 		return nameValue
 	}
 
-	if !Reg.initFinished {
+	if !initFinished {
 		em_library.InitLog.Panicln("[PANIC]", "Please configure the ", idKey, " or ", nameKey)
 	} else {
-		LogError.Output("Please configure the ", idKey, " or ", nameKey)
+		LogError.New("Please configure the ", idKey, " or ", nameKey)
 	}
 	panic("Please configure the "+ idKey+ " or "+ nameKey)
 }
 
 // Id Key
 func MustGetServiceIdKvKey(key string) string {
-	idKey := define.MakeServiceConfField(em_library.Config.Service.RpcId, key)
+	idKey := em_define.GetPathByFieldName(em_library.Config.Service.RpcId, key)
 
 	// Get key
 	idValue, err := Kv.ReadKey(idKey)
@@ -47,16 +58,16 @@ func MustGetServiceIdKvKey(key string) string {
 		return idValue
 	}
 
-	if !Reg.initFinished {
+	if !initFinished {
 		em_library.InitLog.Panicln("[PANIC]", "Please configure the ", idKey)
 	} else {
-		LogError.Output("Please configure the ", idKey)
+		LogError.New("Please configure the ", idKey)
 	}
 	panic("Please configure the "+ idKey)
 }
 
 func MustListServiceIdKvKey(key string) map[string]string {
-	idKey := define.MakeServiceConfField(em_library.Config.Service.RpcId, key)
+	idKey := em_define.GetPathByFieldName(em_library.Config.Service.RpcId, key)
 
 	// Get key
 	idValue, err := Kv.List(idKey)
@@ -64,17 +75,17 @@ func MustListServiceIdKvKey(key string) map[string]string {
 		return idValue
 	}
 
-	if !Reg.initFinished {
+	if !initFinished {
 		em_library.InitLog.Panicln("[PANIC]", idKey, " has no value")
 	} else {
-		LogError.Output(idKey, " has no value")
+		LogError.New(idKey, " has no value")
 	}
 	panic(idKey+ " has no value")
 }
 
 // Name Key
 func MustGetServiceNameKvKey(key string) string {
-	nameKey := define.MakeServiceConfField(em_library.Config.Service.RpcName, key)
+	nameKey := em_define.GetPathByFieldName(em_library.Config.Service.RpcName, key)
 
 	// Get key
 	nameValue, err := Kv.ReadKey(nameKey)
@@ -82,16 +93,16 @@ func MustGetServiceNameKvKey(key string) string {
 		return nameValue
 	}
 
-	if !Reg.initFinished {
+	if !initFinished {
 		em_library.InitLog.Panicln("[PANIC]", "Please configure the ", nameKey)
 	} else {
-		LogError.Output("Please configure the ", nameKey)
+		LogError.New("Please configure the ", nameKey)
 	}
 	panic("Please configure the "+ nameKey)
 }
 
 func MustListServiceNameKvKey(key string) map[string]string {
-	nameKey := define.MakeServiceConfField(em_library.Config.Service.RpcName, key)
+	nameKey := em_define.GetPathByFieldName(em_library.Config.Service.RpcName, key)
 
 	// Get key
 	nameValue, err := Kv.List(nameKey)
@@ -99,10 +110,10 @@ func MustListServiceNameKvKey(key string) map[string]string {
 		return nameValue
 	}
 
-	if !Reg.initFinished {
+	if !initFinished {
 		em_library.InitLog.Panicln("[PANIC]", nameKey, " has no value")
 	} else {
-		LogError.Output(nameKey, " has no value")
+		LogError.New(nameKey, " has no value")
 	}
 	panic(nameKey+ " has no value")
 }
@@ -110,10 +121,10 @@ func MustListServiceNameKvKey(key string) map[string]string {
 func MustGetKvKey(key string) string {
 	s, err := Kv.ReadKey(key)
 	if err != nil || len(s) == 0 {
-		if !Reg.initFinished {
+		if !initFinished {
 			em_library.InitLog.Panicln("[PANIC]", "Please configure the ", key)
 		} else {
-			LogError.Output("Please configure the ", key)
+			LogError.New("Please configure the ", key)
 		}
 		panic("Please configure the "+ key)
 	}
@@ -121,8 +132,8 @@ func MustGetKvKey(key string) string {
 }
 
 func GetServiceKvKey(key string) (string, error) {
-	nameKey := define.MakeServiceConfField(em_library.Config.Service.RpcName, key)
-	idKey := define.MakeServiceConfField(em_library.Config.Service.RpcId, key)
+	nameKey := em_define.GetPathByFieldName(em_library.Config.Service.RpcName, key)
+	idKey := em_define.GetPathByFieldName(em_library.Config.Service.RpcId, key)
 
 	// Get key
 	idValue, err := Kv.ReadKey(idKey)
@@ -139,7 +150,7 @@ func GetServiceKvKey(key string) (string, error) {
 }
 
 func GetServiceIdKvKey(key string)  (string, error) {
-	idKey := define.MakeServiceConfField(em_library.Config.Service.RpcId, key)
+	idKey := em_define.GetPathByFieldName(em_library.Config.Service.RpcId, key)
 
 	// Get key
 	idValue, err := Kv.ReadKey(idKey)
@@ -151,7 +162,7 @@ func GetServiceIdKvKey(key string)  (string, error) {
 }
 
 func ListServiceIdKvKey(key string)  (map[string]string, error) {
-	idKey := define.MakeServiceConfField(em_library.Config.Service.RpcId, key)
+	idKey := em_define.GetPathByFieldName(em_library.Config.Service.RpcId, key)
 
 	// Get key
 	idValue, err := Kv.List(idKey)
@@ -163,7 +174,7 @@ func ListServiceIdKvKey(key string)  (map[string]string, error) {
 }
 
 func GetServiceNameKvKey(key string)  (string, error) {
-	nameKey := define.MakeServiceConfField(em_library.Config.Service.RpcName, key)
+	nameKey := em_define.GetPathByFieldName(em_library.Config.Service.RpcName, key)
 
 	// Get key
 	nameValue, err := Kv.ReadKey(nameKey)
@@ -175,7 +186,7 @@ func GetServiceNameKvKey(key string)  (string, error) {
 }
 
 func ListServiceNameKvKey(key string)  (map[string]string, error) {
-	nameKey := define.MakeServiceConfField(em_library.Config.Service.RpcName, key)
+	nameKey := em_define.GetPathByFieldName(em_library.Config.Service.RpcName, key)
 
 	// Get key
 	nameValue, err := Kv.List(nameKey)

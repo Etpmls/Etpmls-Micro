@@ -2,26 +2,21 @@ package em
 
 import (
 	"context"
-	em_library "github.com/Etpmls/Etpmls-Micro/v2/library"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/rs/cors"
+	em_library "github.com/Etpmls/Etpmls-Micro/v3/library"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"net/http"
 )
 
-
-
-type defaultMiddleware struct {
+type middleware struct {
 
 }
 
-func DefaultMiddleware() *defaultMiddleware {
-	return &defaultMiddleware{}
+func Middleware() *middleware {
+	return &middleware{}
 }
 
-func (this *defaultMiddleware) I18n() grpc.UnaryServerInterceptor {
+func (this *middleware) Translate() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		// Get language
 		// 获取语言
@@ -39,22 +34,14 @@ func (this *defaultMiddleware) I18n() grpc.UnaryServerInterceptor {
 	}
 }
 
-func (this *defaultMiddleware) SetCors(mux *runtime.ServeMux, options cors.Options) http.Handler {
-	// CORS
-	// https://github.com/rs/cors
-	c := cors.New(options)
-	// Insert the defaultMiddleware
-	return c.Handler(mux)
-}
-
 // Only Verify Token
 // 仅验证token
 // Ensure the security of the intranet (without going through the API gateway)
 // 保证内网安全（不经过API网关）
-func (this *defaultMiddleware) Auth() grpc.UnaryServerInterceptor {
+func (this *middleware) Auth() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		// Get token from header
-		token, err:= Micro.Auth.Rpc_GetTokenFromHeader(ctx)
+		token, err:= Micro.Auth.GetTokenFromHeader(ctx)
 		if err != nil || token == "" {
 			return nil, status.Error(codes.PermissionDenied, "Permission Denied")
 		}
@@ -68,27 +55,8 @@ func (this *defaultMiddleware) Auth() grpc.UnaryServerInterceptor {
 		// 把token传递到方法中
 		ctx = context.WithValue(ctx,"token", token)
 
-		LogDebug.Output("Auth defaultMiddleware runs successfully!")	// Debug
+		LogDebug.New("Auth middleware runs successfully!") // Debug
 		return handler(ctx, req)
 	}
 }
 
-type middleware struct {
-
-}
-
-// Implement http middleware
-// 实现http中间件
-type MiddlewareFunc func(http.ResponseWriter, *http.Request, map[string]string) error
-func (this *middleware) WithMiddleware(f runtime.HandlerFunc, middlware ...MiddlewareFunc) runtime.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
-		for _, v := range middlware {
-			err := v(w, r, pathParams)
-			if err != nil {
-				return
-			}
-		}
-
-		f(w, r, pathParams)
-	}
-}

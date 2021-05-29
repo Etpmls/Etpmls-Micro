@@ -1,12 +1,12 @@
 syntax = "proto3";
-package em_protobuf;
-option go_package = ".;em_protobuf";
+package em;
+option go_package = ".;empb";
 
 message Empty {}
 
 message Response {
-    string code=1;
-    string status=2;
+    uint32 code=1;
+    bool status=2;
     string message=3;
     string data=4;
 }

@@ -1,51 +1,48 @@
 package em
 
 import (
+	"context"
 	"encoding/json"
-	em_protobuf "github.com/Etpmls/Etpmls-Micro/v2/protobuf"
-	"net/http"
+	"github.com/Etpmls/Etpmls-Micro/v3/proto/empb"
+	"google.golang.org/grpc/codes"
 )
 
-type response struct {}
+// Return error message in json format
+// 返回json格式的错误信息
+func Error(code codes.Code, msg string, data interface{}, err error) (*empb.Response, error) {
+	b, err := json.Marshal(data)
+	LogError.FullPath(err)
 
-// Return a json format response according to ResponseWriter
-// 根据ResponseWriter返回json格式响应
-func (this *response) Http_Json(w http.ResponseWriter, httpCode int, code string, status string, message string, data interface{}, err error) {
-	dataBytes, _ := json.Marshal(data)
-	resBytes, err := json.Marshal(em_protobuf.Response{
-		Code:    code,
-		Status:  status,
-		Message: message,
-		Data:    string(dataBytes),
-	})
-	if err != nil {
-		this.Http_InternalError(w)
-		return
-	}
-	w.WriteHeader(httpCode)
-	_, _ = w.Write(resBytes)
+	return &empb.Response{
+		Code:    uint32(code),
+		Status:  false,
+		Message: msg,
+		Data:    string(b),
+	}, err
 }
 
-// Return error response according to ResponseWriter
-// 根据ResponseWriter返回error
-func (this *response) Http_Error(w http.ResponseWriter, httpCode int, code string, message string, err error) {
-	this.Http_Json(w, httpCode, code, "error", message, nil, err)
-	return
+// Return error message in json format and translate
+// 返回json格式的错误信息并翻译
+func ErrorTranslate(ctx context.Context, code codes.Code, msg string, data interface{}, err error) (*empb.Response, error) {
+	return Error(code, Translate.TranslateFromRequest(ctx, msg), data, err)
 }
 
-// Return internal error response according to ResponseWriter
-// 根据ResponseWriter返回内部error
-func (this *response) Http_InternalError(w http.ResponseWriter) {
-	b := []byte("{\"code\":\"500000\",\"status\":\"error\",\"message\":\"Internal Error\",\"data\":null}")
-	w.WriteHeader(http.StatusInternalServerError)
-	_, _ = w.Write(b)
-	return
+// Return success information in json format
+// 返回json格式的成功信息
+func Success(code codes.Code, msg string, data interface{}) (*empb.Response, error) {
+	b, err := json.Marshal(data)
+	LogError.FullPath(err)
+
+	return &empb.Response{
+		Code:    uint32(code),
+		Status:  true,
+		Message: msg,
+		Data:    string(b),
+	}, err
 }
 
-// Return success response according to ResponseWriter
-// 根据ResponseWriter返回success
-func (this *response) Http_Success(w http.ResponseWriter, httpCode int, code string, message string, data interface{}) {
-	this.Http_Json(w, httpCode, code, "success", message, data, nil)
-	return
+// Return success information in json format and translate
+// 返回json格式的成功信息并翻译
+func SuccessTranslate(ctx context.Context, code codes.Code, msg string, data interface{}) (*empb.Response, error) {
+	return Success(code, Translate.TranslateFromRequest(ctx, msg), data)
 }
-

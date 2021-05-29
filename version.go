@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	Version_Framework = "2.0.1"
+	Version_Framework = "3.0.0-beta1"
 )
 
 var (
@@ -16,8 +16,8 @@ var (
 func init_version(reg *Register) bool {
 	flag.Parse()
 	if *flag_Version {
-		VersionRegistration("Etpmls-Micro Version", Version_Framework)
-		for k, v := range reg.AppVersion {
+		VersionRegistration("Etpmls-Micro Framework Version", Version_Framework)
+		for k, v := range reg.Version {
 			VersionRegistration(k, v)
 		}
 		return true

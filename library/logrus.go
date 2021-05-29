@@ -2,7 +2,7 @@ package em_library
 
 import (
 	"fmt"
-	"github.com/Etpmls/Etpmls-Micro/v2/define"
+	"github.com/Etpmls/Etpmls-Micro/v3/define"
 	"github.com/hashicorp/consul/api"
 	Package_Logrus "github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -16,7 +16,7 @@ func Init_Logrus(logLevel string) {
 	// Instance_Logrus as JSON instead of the default ASCII formatter.
 	Instance_Logrus.Formatter = new(Package_Logrus.JSONFormatter)
 
-	// Output to stdout instead of the default stderr
+	// New to stdout instead of the default stderr
 	// Can be any io.Writer, see below for File example
 	Instance_Logrus.Out = &lumberjack.Logger{
 		Filename:   "./storage/log/app.log",
@@ -103,7 +103,7 @@ func (this *logrus) Trace(args ...interface{}) {
 }
 
 func (this *logrus) logToKv(args ...interface{}) {
-	k := define.KvLogLog + time.Now().Format("2006-01")
+	k := em_define.KvLogLog + time.Now().Format("2006-01")
 	pair, _, err := kv.Get(k, nil)
 	if err != nil || pair == nil {
 		p := &api.KVPair{Key: k, Value: []byte(fmt.Sprint(args))}

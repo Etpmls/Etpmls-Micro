@@ -2,7 +2,7 @@ package em
 
 import (
 	"context"
-	em_library "github.com/Etpmls/Etpmls-Micro/v2/library"
+	em_library "github.com/Etpmls/Etpmls-Micro/v3/library"
 )
 
 type request struct {
@@ -13,12 +13,12 @@ type request struct {
 // 从ctx获取令牌
 func (this *request) GetValueFromCtx(ctx context.Context, value string) (string, error) {
 	if ctx == nil {
-		return "", LogError.OutputAndReturnError(MessageWithLineNum("Failed to obtain request!"))
+		return "", LogError.Error(MessageWithLineNum("Failed to obtain request!"))
 	}
 
 	v := ctx.Value(value);
 	if v == nil {
-		return "", LogInfo.OutputAndReturnError(MessageWithLineNum("Failed to obtain " + value +"!"))
+		return "", LogInfo.Error(MessageWithLineNum("Failed to obtain " + value +"!"))
 	}
 
 	return v.(string), nil
@@ -26,9 +26,9 @@ func (this *request) GetValueFromCtx(ctx context.Context, value string) (string,
 
 // Get value from header
 // 从header获取值
-func (this *request) Rpc_GetValueFromHeader(ctx context.Context, value string) (string, error) {
+func (this *request) GetValueFromHeader(ctx context.Context, value string) (string, error) {
 	if ctx == nil {
-		return "", LogError.OutputAndReturnError(MessageWithLineNum("Failed to obtain " + value +"! Context is nil"))
+		return "", LogError.Error(MessageWithLineNum("Failed to obtain " + value +"! Context is nil"))
 	}
 
 	// 1.Get header from grpc-gateway
@@ -43,14 +43,14 @@ func (this *request) Rpc_GetValueFromHeader(ctx context.Context, value string) (
 			return v2, nil
 		}
 
-		return "", LogInfo.OutputAndReturnError(MessageWithLineNum(err.Error()))
+		return "", LogInfo.Error(MessageWithLineNum(err.Error()))
 	}
 	return v, nil
 }
 
 // Set the value to the header
 // 向header中设置值
-func (this *request) Rpc_SetValueToHeader(ctx *context.Context, m map[string]string) {
+func (this *request) SetValueToHeader(ctx *context.Context, m map[string]string) {
 	g := em_library.NewGrpc()
 	g.SetValueToMetadata(ctx, m)
 	return
